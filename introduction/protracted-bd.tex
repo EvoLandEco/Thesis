@@ -1,0 +1,53 @@
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    >=Stealth,
+    x=0.8cm,
+    y=0.8cm
+  ]
+
+  % Time axis
+  \draw[treegray,->] (0,0) -- (10.5,0) node[anchor=west] {\scriptsize time};
+
+  % Parent lineage
+  \draw[treegray,thick] (1,1.0) -- (10.5,1.0);
+  \node[treegray,anchor=east] at (1,1.0) {\scriptsize ancestral lineage};
+
+  % Instantaneous speciation (reference)
+  \draw[accentblue,thick] (1.4,1.0) -- (1.4,1.4);
+  \draw[accentblue,thick] (1.4,1.4) -- (3.2,2.0);
+  \node[accentblue,anchor=west] at (3.3,2.0) {\scriptsize instantaneous speciation};
+
+  % Protracted speciation: incipient then good
+  % Incipient branch
+  \draw[accentorange,thick,dashed]
+    (5.0,1.0) -- (5.7,1.4) node[pos=0.35,above right,xshift=-24] {\scriptsize incipient};
+  % Transition to good species
+  \draw[accentred,thick]
+    (5.7,1.4) -- (7.5,2.0);
+  \node[accentred,anchor=west] at (7.6,2.0) {\scriptsize completed speciation};
+
+  % Protracted speciation: incipient then merge back
+  % Incipient branch
+  \draw[accentorange,thick,dashed]
+    (8.0,1.0) -- (8.7,1.4) node[pos=0.35,above right,xshift=-24] {\scriptsize incipient};
+  % Transition to good species
+  \draw[treegray,thick,dashed]
+    (8.7,1.4) -- (9.4,1.0);
+    
+  % Vertical markers for onset / completion
+  \draw[treegray,dotted] (1.4,0) -- (1.4,1.0);
+  \node[treegray,anchor=north,xshift=-10] at (1.4,0) {\scriptsize completion};
+  \draw[treegray,dotted] (5.0,0) -- (5.0,1.0);
+  \node[treegray,anchor=north,xshift=-4,yshift=-1] at (5.0,0) {\scriptsize onset};
+  \draw[treegray,dotted] (5.7,0) -- (5.7,1.4);
+  \node[treegray,anchor=north,xshift=10,yshift=-0.55] at (5.7,0) {\scriptsize completion};
+  \draw[treegray,dotted] (8.0,0) -- (8.0,1.0);
+  \node[treegray,anchor=north,yshift=-1] at (8.0,0) {\scriptsize onset};
+  \draw[treegray,dotted] (9.4,0) -- (9.4,1.0);
+  \node[treegray,anchor=north,yshift=-0.55] at (9.4,0) {\scriptsize merged};
+
+  \end{tikzpicture}
+  \caption{Illustration of protracted speciation. A new lineage enters an incipient-species stage (dashed orange) before becoming a fully recognized species (solid red), delaying the appearance of new species in reconstructed phylogenies relative to instantaneous speciation. A new lineage may fail and merge back.}
+  \label{fig::intro::protracted-bd}
+\end{figure}

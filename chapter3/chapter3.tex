@@ -1,0 +1,711 @@
+\chapter{Neural Recoverability under the \texttt{eve} Model}
+\label{chapter3}
+\blfootnote{{\color{rug-red} \faFile*[regular]}~Qin, T., van Benthem, K., Valente, L.\textsuperscript{\dag}, \& Etienne, R.\textsuperscript{\dag} Identifying evolutionary relatedness effects on diversification from phylogenies using neural networks. Manuscript in preparation. \textsuperscript{\dag} indicates joint senior authors.}
+
+\dropcap{R}econstructing the forces that shaped macroevolutionary histories from extant phylogenies is fundamentally challenging: richly parameterized diversification models are often only weakly identifiable; different evolutionary mechanisms can yield nearly indistinguishable tree shapes. Here we use a model with evolutionary relatedness dependence to evaluate how much information about such forces can be recovered from simulated trees. We train graph neural networks and long short–term memory classifiers to distinguish three scenarios of feedback of diversity on diversification: effect of phylogenetic diversity (total branch length), evolutionary distinctiveness (average phylogenetic distance of a species to all other species in a clade), and nearest–neighbor distance (phylogenetic distance to the mostly closely related species). We also train a suite of regression networks to estimate the underlying diversification parameters. We then analyze classification performance, calibration of predicted class probabilities, regression errors, and their dependence on tree size and on the strength and sign of richness and relatedness effects. Across network architectures and complexity levels, scenario classification is only moderately accurate and strongly asymmetric as revealed by the confusion matrix. Trees generated under an effect of nearest–neighbor distance on diversification tend to be correctly classified, whereas those with an effect of evolutionary distinctiveness are frequently misclassified. Regression networks systematically shrink predictions toward the empirical mean, especially for complex models, suggesting broad regions of parameter space with low identifiability. Strong global dependence of diversification rates on diversity further erodes recoverability by driving large variations in tree size that mask the subtler signatures of relatedness effects. In contrast, sufficiently strong speciation-relatedness effects can carve out narrow regions of parameter space in which scenarios and parameters become practically recoverable. Together, our results provide a map of when neural networks can and cannot infer diversification mechanisms from extant trees under our evolutionary relatedness dependence model, and they underscore the need for additional data or constraints when using flexible diversification models for macroevolutionary inference.
+
+\clearpage
+{ % Constrain counter reset
+% Hacky command for displaying Appendix citations
+\renewcommand{\subsectionautorefname}{Appendix}
+\section{Introduction}
+\dropcap{T}ime‐calibrated phylogenies are now central tools for studying macroevolutionary dynamics. From such trees, we seek to reconstruct how speciation and extinction rates varied through time and across lineages, and how ecological limits and biotic interactions have shaped present-day diversity \citep{nee_tempo_1992, quental_diversity_2010}. Early work typically assumed constant diversification rates, which implies exponential lineage accumulation \citep{nee_extinction_1994, kubo_inferring_1995}. However, reconstructed phylogenies for many clades show pronounced slowdowns in lineages-through-time curves, inconsistent with simple constant-rate models and motivating a broad family of more flexible diversification models, including time-dependent, diversity-dependent, and protracted speciation models \citep{phillimore_density-dependent_2008, moen_why_2014, etienne_diversity-dependence_2012, etienne_prolonging_2012, rosindell_protracted_2010}. A common mechanistic theme in these models is that speciation rates decline as clades fill ecological or niche space, with species richness acting as a proxy for ecological limits \citep{srivastava_phylogenetic_2012, kondratyeva_reconciling_2019}. 
+
+At the same time, there is growing recognition that extant phylogenies carry only limited information about past diversification histories. \citet{nee_reconstructed_1994} already showed that a constant-rate birth-death model is equivalent to a pure birth model with temporally declining speciation rate. This property allowed them to compute the probability of a phylogeny given the constant-rate birth-death model, but also implies that there is inherent indistinguishability of these models based on phylogenetic information alone. This result was generalized by \citet{louca_extant_2020}, who showed that, under general birth-death processes, an infinite number of distinct speciation-extinction trajectories can produce exactly the same distribution of extant time trees, forming large “congruence classes” of observationally equivalent models. Even for more constrained model families, branching patterns alone often cannot discriminate between alternative mechanisms. For instance, \citet{pannetier_branching_2021} demonstrated that diversity-dependent and purely time-dependent diversification models that share the same expected diversity‐through‐time curve are essentially indistinguishable from extant trees using standard likelihood methods. These results highlight that increasing model flexibility does not automatically yield more informative inferences.
+
+The recently-developed \texttt{eve} model of \citet{qin_impact_2025} augments diversity-dependent diversification by allowing speciation and extinction rates to depend linearly on both species richness and a measure of evolutionary relatedness (ER) for each lineage. The rationale for this is that ER may have an effect in diversification rates that is independent from species diversity, for instance, if closely related species are more likely to compete for niches. ER can be defined at different phylogenetic scales, for example using clade-wide phylogenetic diversity (PD, total branch length in the tree) or more localized, lineage-specific metrics such as evolutionary distinctiveness (ED, average phylogenetic distance to all other species in the clade) or nearest-neighbor distance (NND, phylogenetic distance to the most closely related species). Depending on the signs and magnitudes of the richness and ER effects, \texttt{eve} can generate a wide range of branching patterns and tree shapes, and previous work has suggested that the PD, ED and NND variants can produce near identical tree-shape signatures for moderate effect sizes, in terms of classic phylogenetic summary statistics. 
+
+The complexity and state dependence of \texttt{eve} make likelihood-based inference of parameters of the model analytically intractable, encouraging a shift toward simulation-based approaches. Neural networks and other deep-learning methods have recently been proposed to estimate diversification parameters and classify models from phylogenetic trees \citep{lajaaiti_comparison_2023, voznica_deep_2022, lambert_deep_2023, qin_parameter_2025}. These methods can learn from graph representations of trees, branching times and summary statistics, and for relatively simple birth-death or diversity-dependent models they can achieve performance comparable to, or potentially exceeding, maximum likelihood estimation. However, when applied to models already known to suffer from non-identifiability, such as protracted speciation \citep{etienne_estimating_2014}, neural networks tend to converge to conservative predictions that reflect the empirical mean of the training distribution rather than the true parameters. In such cases, the limiting factor appears to be the information content of the trees, even after extensive sweeps over neural network architectures, depths, and hyperparameter settings, rather than the expressive power of the estimator \citep{qin_parameter_2025}. This suggests that models as flexible as diversity-dependent diversification or protracted speciation may already lie close to the practical limits of what can be identified from extant trees, regardless of whether one uses maximum likelihood or neural networks, and thus there is little reason to expect neural networks to reliably recover all parameters of an even more complex model such as \texttt{eve}.
+
+In this study we use neural networks as means to explore the putative limits of information content of phylogenies regarding diversification processes in complex models. We simulate large collections of extant trees under the three ER scenarios (PD, ED, NND), three levels of model complexity (2, 4 or 6 free parameters), and a broad range of effect sizes for the effects of species richness and evolutionary relatedness. We then train graph neural networks (GNNs) and long short-term memory (LSTM) networks as classifiers to distinguish PD, ED and NND, and as regressors (in an ensemble GNN+LSTM architecture as developed by \citet{qin_parameter_2025}) to recover the underlying parameters from tree representations and branching times. Performance is evaluated as a function of tree size, true parameter values, model complexity and regressor/classifier misspecification, using simulated tree datasets. 
+
+By asking when these neural network learners succeed or fail, we obtain a map of the practical recoverability of \texttt{eve} under a range of scenarios. High classification accuracy or precise parameter recovery marks regions of parameter space where the three ER scenarios generate distinct, possibly information-rich tree patterns. Systematic misclassification and regression predictions collapsing toward the conditional mean correlate to non-recoverability, suggesting that different parameter combinations or ER mechanisms give rise to overlapping tree shapes that cannot be distinguished. Small trees provide fewer branching events and shorter histories, and thus are expected to fall into low-information, more non-identifiable settings, analogous to sample size in time-series hidden Markov models \citep{cole_parameter_2019}. 
+
+Our goals are therefore twofold. First, we quantify how tree size (number of nodes of the trees), effect size (magnitude of the values of parameters controlling the effects of species richness and evolutionary relatedness on diversification) and model complexity (number of effective parameters) interact to determine the recoverability of \texttt{eve} parameters and the discriminability of PD, ED and NND from extant trees. Second, we interpret the characteristic failure modes of our networks, e.g., conservative regression, confusion between ER scenarios, and differing sensitivity to global (PD) versus local (ED/NND) forces, to gain insight into the expected behaviors for parameter estimation using deep learning on complex diversification models.
+
+\section{Methods}
+\label{ch3::sec::methods}
+\subsection{Software and Hardware}
+\label{ch3::sec::methods::environment}
+We used \texttt{PyTorch 1.12.1} \citep{prakash_pytorch_2021}, \texttt{PyTorch Geometric 2.3.1} \citep{fey_fast_2019}, \texttt{Python 3.7.1} \citep{python_python_2021} and \texttt{CUDA 12.2.2} \citep{luebke_cuda_2008} for the neural networks and \texttt{R 4.2.1} \citep{r_core_team_r_2025} for data processing, simulation and visualization. All the computationally heavy tasks were performed on the Hábrók high-performance computing cluster of the University of Groningen. Our neural networks were trained, optimized and evaluated on the NVIDIA A100 and V100 tensor core GPUs of the Hábrók cluster.
+
+\subsection{Simulation Approaches}
+\label{ch3::sec::methods::simulation}
+We used the \texttt{evesim} R package \citep{qin_impact_2025} --- an efficient \texttt{C++} implementation of the \texttt{eve} model --- to simulate phylogenetic trees. We kept only extant lineages for each of the trees. The parameter settings used for simulation were chosen to limit the maximum number of extant lineages to maintain a manageable memory and computational demand for both simulation and neural network training. We filtered out simulated trees containing more than 1500 lineages (terminal tips), due to limited available hardware resources. Large trees were rare in our settings, typically less than 10 trees were removed per complete run. The sizes of the simulated trees may vary per each complete run. We recorded how many trees were removed in this way.
+
+In the \texttt{eve} diversification model, there are three evolutionary scenarios, each of which represents a unique relatedness metric affecting macroevolutionary trajectories: PD (Phylogenetic Diversity), ED (Evolutionary Distinctiveness) and NND (Nearest Neighbor Distance). Each of the evolutionary scenarios are characterized by six parameters that shape the phylogenies: intrinsic speciation rate rate $\lambda_0$; intrinsic extinction rate rate $\mu_0$; effect size of species richness on speciation $\beta_N$; effect size of evolutionary relatedness on speciation $\beta_\varPhi$; effect size of species richness on extinction $\gamma_N$; effect size of evolutionary relatedness on extinction $\gamma_\varPhi$. 
+
+Let \(N_t\) be species richness at time \(t\) and \(\varPhi_{i,t}\) the
+evolutionary relatedness score for lineage \(i\) at time \(t\)
+(we write \(\varPhi_t\) when it does not depend on lineage). Then we have
+\begin{align}
+\lambda_i(t)
+  &= \lambda_0 \;+\; \beta_{N}\,N_t \;+\; \beta_{\varPhi}\,\varPhi_{i,t}, \\
+\mu_i(t)
+  &= \mu_0 \;+\; \gamma_{N}\,N_t \;+\; \gamma_{\varPhi}\,\varPhi_{i,t}.
+\end{align}
+
+Under the PD scenario, \(\varPhi_{i,t}\equiv \varPhi_t\) for all lineages \(i\). Consequently, \(\lambda_i(t)=\lambda_j(t)\) and \(\mu_i(t)=\mu_j(t)\) for all \(i,j\). Under ED and NND scenarios, \(\varPhi_{i,t}\) depends on \(i\), so \(\lambda_i(t)\) and \(\mu_i(t)\) may differ across lineages at the same \(t\). See \citet{qin_impact_2025} for more details. 
+
+By changing the number of parameters involved in simulation, we generated datasets of three different levels of model complexity for each of the three evolutionary scenarios. The low-complexity datasets were the results of simulation using $\lambda_0$ and $\mu_0$; the medium-complexity datasets were the results of simulation using two more parameters $\beta_N$ and $\beta_\varPhi$; the high-complexity datasets were the results of simulation using two additional parameters $\gamma_N$ and $\gamma_\varPhi$. This staged parameterization helps disentangle the contributions of time-varying speciation and time-varying extinction by progressively introducing separate sets of parameters that modulate each process and comparing their incremental effects on the simulated trees.
+
+Per complexity level and per scenario, we randomly sampled the parameters from uniform distributions. The upper bound for the extinction rates were proportionally dependent on the drawn speciation rate to avoid cases where extinction rates could be larger than speciation rates, because in such cases the whole tree likely goes extinct. We simulated 100,000 trees (before size-filtering) per scenario per complexity and split later for neural network training (90\%) and validation (10\%). For each scenario-complexity combination, we additionally simulated 10,000 trees for the purpose of performance test. The number of simulated trees is bounded by time limits and available hardware resources of the computing cluster. See \autoref{ch3::table::simulated_trees} for detailed parameter settings and \autoref{fig::params-dist} for the distribution of parameters of successfully generated and retained trees.
+
+We assumed an identical crown age of 10 time units ($t = 10$) for all phylogenies. The choice of crown age is arbitrary because we can rescale the crown age arbitrarily, as long as we rescale the generating parameters accordingly. See also \autoref{fig::illustration} for an illustration of simulation settings.
+
+\begin{figure}[htb]
+    \centering
+    \resizebox{1.0\textwidth}{!}{
+        \includegraphics{chapter3/illustration.pdf}
+    }
+    \caption{General overview of the workflow: phylogenetic trees are simulated under PD (phylogenetic diversity), ED (evolutionary distinctiveness), and NND (nearest-neighbor distance) scenarios across low/medium/high complexity parameterizations, then assembled into the full dataset, or stratified into per-scenario and per-tree-size datasets. These datasets were used to train neural network classifiers/regressors using information such as tree representations and branching times. Neural networks were evaluated per scenario, per size, overall, and under model misspecification.}
+    \label{fig::illustration}
+\end{figure}
+
+\begin{sidewaystable}[ht]
+    \caption{Parameter settings for the simulated tree datasets using different model settings. The ``Complexity'' column specifies which level of model complexity the datasets belong to, with regard to the number of parameters. Each complexity level is crossed with all three evolutionary scenarios as described in the methods. All simulated trees have identical crown age of 10 time units. For each complexity level and evolutionary scenario combination, 100,000 trees were simulated. The sub-columns under each of the parameters specify the lower ($min$) and the upper ($max$) bounds of the parameter space; all parameters are sampled from $U(min, max)$, where $U$ denotes uniform distribution. $\lambda_0$: intrinsic speciation rate rate; $\mu_0$: intrinsic extinction rate rate; $\beta_N$: effect size of species richness on speciation; $\beta_\varPhi$: effect size of evolutionary relatedness on speciation; $\gamma_N$: effect size of species richness on extinction; $\gamma_\varPhi$: effect size of evolutionary relatedness on extinction. For each parameter, the symbol ``--'' indicates that this parameter is always $0$, thus disabling its impact on the simulation.}
+    \input{chapter3/simulation}
+    \label{ch3::table::simulated_trees}
+\end{sidewaystable}
+
+\subsection{Classification}
+\label{ch3::sec::methods::classification}
+\subsubsection{Network Architecture and Training}
+\label{ch3::sec::methods::classification::architecture}
+The \texttt{eve} simulations involve three evolutionary scenarios. To investigate whether neural networks can identify these scenarios, we trained graph neural network (GNN) and long short-term memory (LSTM) classifiers independently on the simulated datasets. In short, in our settings, GNNs learn representations by iterative neighborhood aggregation over the graph topology \citep{kipf_semi-supervised_2016}, whereas LSTMs are gated recurrent networks that summarize sequential inputs via a memory cell \citep{sak_long_2014}. For the GNN, the full phylogeny was represented as a graph, with nodes corresponding to taxa and edges representing evolutionary relationships. For the LSTM, we transformed the phylogeny into a sequence of branching times, treating these as time-series data. Input data were prepared using \texttt{PyTorch} utilities and our custom functions in the codebase \texttt{eveGNN} \citep{qin_evegnn_2023}. 
+
+Detailed base architectures and hyperparameter settings of these neural networks are described in \citet{qin_parameter_2025}. This design has shown good regression performance on phylogenetic trees \citep{qin_parameter_2025}. Here, instead of outputting parameter estimates, for each input phylogeny a classifier produces a three-class prediction, which we write as a probability vector
+\[
+\mathbf{\hat{y}} = \mathbf{p} = \bigl[p_{\text{PD}}, \, p_{\text{ED}}, \, p_{\text{NND}}\bigr],
+\]
+with \(p_{\text{PD}} + p_{\text{ED}} + p_{\text{NND}} = 1\). Each component represents the predicted probability that the input tree was generated under the corresponding scenario.
+
+During training, we optimized the classifiers using cross-entropy loss, which directly compares the predicted probabilities \(\mathbf{\hat{y}}\) to the true class labels \(\mathbf{y}\). Because the classification task requires phylogenies from all three evolutionary scenarios, the classifiers were trained on the full dataset that pools trees generated under PD, ED, and NND. 
+
+For the GNN classifiers, two GNN-specific loss terms designed to facilitate graph-structured learning were added to the cross-entropy loss term. The full specification of the classification loss is given in \ref{appendix::total_loss}. For optimization, we employed the AdamW (adaptive moment estimation with decoupled weight decay) algorithm \citep{loshchilov_decoupled_2017} to iteratively minimize the total loss and update network weights.
+
+To balance computational efficiency and GPU memory usage, training was conducted using mini-batches of size 64, where each mini-batch contained data from 64 simulated phylogenies. During training, model checkpoints were saved at multiple epochs. We compared training and validation losses across epochs and selected the checkpoint that achieved stable generalization performance, balancing underfitting and overfitting.
+
+\subsubsection{Performance Analysis}
+\label{ch3::sec::methods::classification::performance}
+We evaluated the trained classifiers using confusion matrices, standard classification metrics, distributional comparisons of generating parameters, empirical accuracy surfaces, and probability calibration diagnostics. Here we illustrate the main ideas, precise definitions and formulas for all classification performance measures are given in \ref{appendix::classification-performance}.
+
+To summarize scenario-level performance, we computed confusion matrices for each classifier and for different groupings of the test data. For every tree, the predicted class was taken to be the scenario with the largest posterior probability among \(\{\text{PD}, \text{ED}, \text{NND}\}\), ties (equal probabilities) were broken at random but were rare in practice. The resulting \(3\times 3\) confusion matrices have rows corresponding to the true scenario and columns to the predicted scenario, so that each entry \(C_{rc}\) counts how many trees with true class \(r\) were predicted as class \(c\). For visualization, we row-normalized each confusion matrix so that the entries in each row \(r\) sum to one, i.e.\ \(\tilde{C}_{rc} = C_{rc} / \sum_{c'} C_{rc'}\). The diagonal elements then correspond directly to the class-wise recall (true positive rate) for each scenario, whereas the off-diagonal elements give the conditional misclassification rates. We constructed two sets of contrasts based on these matrices: (i) a comparison between GNN and LSTM architectures, and (ii) a comparison between medium- and high-complexity versions of the \texttt{eve} model (four versus six free parameters), fixing the architecture to GNN. For each contrast and each cell \((r,c)\) we computed the change in row-normalized recall between methods \(A\) and \(B\),
+\[
+\Delta p_{rc} = 100\bigl(\tilde{C}^{(B)}_{rc} - \tilde{C}^{(A)}_{rc}\bigr),
+\]
+expressed in percentage points. 
+
+In addition to confusion matrices, we computed overall and per-scenario accuracy, precision, recall (sensitivity), and F1-score for each classifier. The exact formulas and notation used are provided in \ref{appendix::classification-performance}. To study how classification performance varies across parameter space, we also sliced the results into consecutive ranges based on the true phylogenetic parameters and the simulated tree sizes, as detailed in \ref{appendix::pars-slices}. These ranges allowed us to examine how accuracy and other metrics depend on effect sizes and tree size.
+
+To further investigate how classification success depends on the true diversification parameters, we treated the correctness of the prediction for each tree as a binary response (\texttt{correct} \(\in \{0,1\}\)) and compared the distributions of the generating parameters between correctly and incorrectly classified trees. First, we summarized the marginal distributions of each parameter $\{\lambda_0, \mu_0, \beta_N, \beta_{\varPhi}, \gamma_N, \gamma_{\varPhi}\}$ and of tree size ($|\mathcal{T}|$) using ridge--line density plots (i.e., vertically stacked and slightly overlapping density curves on a shared horizontal axis), stratified by architecture (GNN vs.\ LSTM) and true scenario (PD, ED, NND). For each scenario-architecture-parameter combination we carried out a two-sample Kolmogorov-Smirnov (KS) test comparing the parameter values for correctly versus incorrectly classified trees, and adjusted the resulting $p$-values across tests by the Benjamini-Hochberg procedure. The KS statistic provides a nonparametric measure of the maximum discrepancy between empirical cumulative distributions and is sensitive to differences of distributions in both location and shape.
+
+Second, we quantified a global measure of dependence between correctness and the full parameter vector $(\lambda_0,\mu_0,\beta_N,\beta_{\varPhi},\gamma_N,\gamma_{\varPhi}, |\mathcal{T}|, \lambda_0-\mu_0)$ while controlling for scenario and architecture. We used partial distance correlation, with the true class and model encoded as conditioning variables. This test evaluates the null hypothesis that, given scenario and architecture, the parameter vector is independent of the correctness indicator. The resulting \(p\)-value is reported as an overall measure of residual parameter dependence.
+
+To evaluate how well the class probabilities output by our classifiers reflect true predictive uncertainty, we performed a calibration analysis based on reliability diagrams and expected calibration error (ECE). For each phylogeny in the test sets we recorded the predicted scenario (\(\widehat{y}\in\{\mathrm{PD}, \mathrm{ED}, \mathrm{NND}\}\)), the corresponding maximum predicted probability \(\hat{p}=\max\{\hat{p}_{\mathrm{PD}},\hat{p}_{\mathrm{ED}},\hat{p}_{\mathrm{NND}}\}\), and an indicator of correctness \(\mathbb{I}(\widehat{y}=y)\), where \(y\) denotes the true scenario. Following standard practice, we partitioned the confidence interval \([0,1]\) into \(M=10\) equally wide bins \(B_m=[(m-1)/M,m/M)\) and, for every analysis stratum, computed for each bin the average confidence
+\[
+\mathrm{conf}(B_m) = \frac{1}{|B_m|} \sum_{i:\,\hat{p}_i\in B_m} \hat{p}_i
+\]
+and the empirical accuracy
+\[
+\mathrm{acc}(B_m) = \frac{1}{|B_m|} \sum_{i:\,\hat{p}_i\in B_m} \mathbb{I}(\widehat{y}_i = y_i),
+\]
+where \(|B_m|\) is the number of test trees whose confidence falls in bin \(B_m\). To summarize miscalibration with a single scalar, we used the expected calibration error
+\[
+\mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{N} \bigl|\mathrm{acc}(B_m)-\mathrm{conf}(B_m)\bigr|,
+\]
+where \(N\) is the total number of test trees in the stratum; lower ECE indicates better agreement between predicted confidences and observed accuracies. We computed reliability curves and ECE in several complementary strata (overall, per scenario, per tree size group, and across model complexities) and also after partitioning trees into ranges of \(\beta_N\) and \(\beta_{\varPhi}\). 
+
+\subsection{Regression}
+\label{ch3::sec::methods::regression}
+\subsubsection{Network Architecture and Training}
+\label{ch3::sec::methods::regression::architecture}
+Like classification, we also used GNN and LSTM for the regression tasks. Additionally, we combined GNN and LSTM using a sequential ``boosting'' method to leverage all available information and reduce prediction error. In this approach, the GNN first provides an initial parameter estimate; the LSTM then predicts the residual errors of the GNN, and the final estimate is obtained by adding this correction. Details of the neural network regressors and the ``boosting'' method are described and discussed in \citet{qin_parameter_2025}. For each level of complexity, the vector of predicted variables \(\boldsymbol{\hat{\theta}}\) comprises all nonzero parameters used in simulation in the model (two, four, or six for the low-, medium-, and high-complexity settings, respectively, as described above).
+
+For the regression analyses, the simulated tree datasets were reorganized into subsets tailored to different questions. Across all complexity levels, we partitioned the data according to (i) evolutionary scenario in the \texttt{eve} model, yielding three subsets that contain only phylogenies generated under PD, ED, or NND, respectively, for studying per-scenario and regressor-misspecification performance, and (ii) tree size (i.e., the total number of nodes), yielding three consecutive ranges: small trees (\(n \in [0, 200]\)), medium trees (\(n \in [201, 500]\)), and large trees (\(n > 500\)), for studying size-specific performance. In addition to these subsets, we retained the full dataset that contains all simulated phylogenies for assessing overall performance (see also \autoref{fig::illustration}).
+
+For the LSTM regressors, we used the Huber loss \citep{huber_robust_1992} to quantify prediction error during training. For the GNN regressors and the boosting method, two GNN-specific loss terms designed to facilitate graph-structured learning were added to the Huber loss term. The full specification of the regression loss is given in \ref{appendix::total_loss}. For optimization and training, similar approaches were used as in the classification tasks.
+
+For each complexity level, the above subsetting allowed us to train regressors separately on (i) the complete training dataset, (ii) scenario-specific training datasets, and (iii) size-specific training datasets. For each neural network architecture, this yields a total of seven regression models per complexity level. The structure of the regression analyses and data partitions is summarized in \autoref{fig::illustration}.
+
+\subsubsection{Performance Analysis}
+\label{ch3::sec::methods::regression::performance}
+Regression performance was evaluated using residual diagnostics and correlation-based measures. Here we provide a brief overview; formal definitions and equations are given in \ref{appendix::alignment-metrics}. For each trained regressor, we computed residuals as the differences between the true parameters and the predicted parameters, \(\hat{\boldsymbol{\theta}} - \boldsymbol{\theta}\), and summarized these residuals as a function of (i) the true net diversity-independent part of the diversification rate \(\lambda_0 - \mu_0\), (ii) tree size (the total number of nodes, including root, internal, and tip nodes), and (iii) the four evolutionary relatedness effect sizes \(\beta_N\), \(\beta_{\varPhi}\), \(\gamma_N\), and \(\gamma_{\varPhi}\). As a reference for expected tree sizes under a simple birth-death process, we also computed the expectation and an approximate confidence interval for tree size (\ref{appendix::confidence-birthdeath}). To quantify how closely the predictions follow the conditional mean of the training data, we calculated four additional metrics: the coefficient of determination, a slope difference measure, the distance correlation, and Spearman's rank correlation. These metrics characterize, respectively, linear fit, systematic shrinkage toward the mean, overall dependence (including nonlinear structure), and monotonic association between predictions and true parameters.
+
+The regression analyses focused on four aspects of performance: overall performance across all trees, per-size performance, per-scenario performance, and performance under regressor misspecification. Performance under regressor misspecification was assessed by applying scenario-specific regressors (trained on trees from only one scenario) to the complete testing datasets that combine trees from all three scenarios. Because the testing sets contain trees generated under all scenarios, this cross-application reveals how strongly regressor performance degrades when the assumed scenario does not match the true generative process. Our pipeline first classifies trees into scenarios and then applies a scenario-specific regressor to estimate parameters. Quantifying how sensitive the regressors are to upstream classification errors therefore provides insight into how the full pipeline may perform in practice. \autoref{fig::illustration} provides an overview of the analysis steps.
+
+\section{Results}
+\label{ch3::sec::results}
+\subsection{Classification}
+\label{ch3::sec::results::classification}
+Overall, the classifiers recover only a moderate amount of information about the underlying diversification scenario. Across architectures and model complexities, F1 scores and scenario-specific recalls rarely approach one and are often closer to 0.5, especially for ED trees, indicating that misclassification is common. In the following sections, we examine when misclassification becomes less common, treating this primarily as a diagnostic of practical scenario recoverability from extant trees.
+
+\subsubsection{Confusion Matrices}
+\label{ch3::sec::results::classification::confusion-matrices}
+The row-normalized confusion matrices in \autoref{fig::confusion-matrix-model} show that all classifiers recover substantial information about the underlying diversification scenario. The errors are strongly structured and non-symmetric across scenarios. For both architectures, when trained on all complexities simultaneously (see the two panels in the top row of \autoref{fig::confusion-matrix-model}), NND trees are easiest to classify and ED trees are consistently the most difficult. For example, under the GNN trained on all complexities (top-left panel), around 72\% of NND trees are correctly identified, whereas only about 56\% of PD trees and 21\% of ED trees fall on the diagonal. Large proportions of misclassified ED trees are predicted as NND, potentially indicating that the ED and NND scenarios generate overlapping tree patterns. PD trees are also more frequently confused with NND, whereas the reverse error (NND mislabeled as PD) is comparatively rare.
+
+Comparing architectures on the same test set (top row in \autoref{fig::confusion-matrix-model}), the LSTM trades some PD and NND recall for better separation of the ED scenario. The change-in-recall panel (top right in \autoref{fig::confusion-matrix-model}) shows that, across all true scenarios, the LSTM systematically shifts probability mass away from predicting NND and toward predicting ED (positive changes in the ED column and negative changes in the NND column). In other words, the LSTM architecture partially recovers information that distinguishes ED from NND, but at the cost of slightly more confusion between PD and ED and a modest reduction in NND accuracy. This trade-off suggests that even with a different representation of the trees, the ED scenario remains only weakly recoverable from PD and NND.
+
+The bottom row of \autoref{fig::confusion-matrix-model} examines how model complexity affects scenario-level recoverability when using the GNN classifier. For trees generated under the medium-complexity (four-parameter) \texttt{eve} model (bottom-left panel), PD recall is high (about 79\%), NND recall is moderate (about 54\%), and ED recall remains low (about 21\%). When complexity is increased to the full six-parameter model (bottom-middle panel), the change panel (bottom right) reveals that, across all true scenarios, the high-complexity setting induces a shift toward predicting NND.
+
+Taken together, these results indicate that scenario information in \texttt{eve} trees is unevenly distributed and, unsurprisingly, degrades as the number of free parameters increases. At the scenario level, increased model flexibility in \texttt{eve} potentially leads to practical non-recoverability between evolutionary relatedness mechanisms.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/conf_matrix_two_rows.pdf} % Relative width to the width of the main text
+    \caption{Row-normalized confusion matrices and changes in scenario-specific recall. \textbf{Top row}: comparison between classifier architectures on trees of \emph{all complexities}. The left and middle panels show $3\times 3$ confusion matrices for the GNN (A) and LSTM (B) classifiers, respectively, evaluated on the same test trees and pooled across all complexity levels (low, medium, high). Rows correspond to the true evolutionary scenario (PD, ED, NND) and columns to the predicted scenario. The y-axis order is such that the diagonal from top left to bottom right corresponds to matching true and predicted classes (PD, ED, NND). Each tile shows the absolute number of trees and the row-wise percentage of trees in that cell; colors encode the row-normalized value $\tilde{C}_{rc}$, so the diagonal entries represent the per-scenario recall (true positive rate) and off-diagonal entries represent conditional misclassification rates. The right-hand panel displays the change in recall (in percentage points) between methods B and A for each cell, $\Delta p_{rc} = 100(\tilde{C}^{(B)}_{rc} - \tilde{C}^{(A)}_{rc})$. Red tiles indicate that method B predicts that combination of true and predicted class more frequently than method A, and blue tiles indicate the opposite. \textbf{Bottom row}: analogous comparison \emph{between complexity levels} of the \texttt{eve} model. Both confusion matrices are obtained with the GNN classifier, but the left panel (A) uses only trees simulated under the medium-complexity (four-parameter) settings, whereas the middle panel (B) uses only trees from the high-complexity (six-parameter) settings. The right-hand panel again shows changes in recall $\Delta p_{rc} = 100(\tilde{C}^{(B)}_{rc} - \tilde{C}^{(A)}_{rc})$ in the same format as above. Together, these panels reveal which scenarios are systematically confused with one another, how this pattern depends on architecture, and how increasing the number of free parameters in the \texttt{eve} model shifts errors towards particular predicted scenarios.}
+    \label{fig::confusion-matrix-model}
+\end{figure}
+
+\subsubsection{Accuracy Metrics}
+\label{ch3::sec::results::classification::accuracy}
+The sliced accuracy curves in \autoref{fig::class-model} and \autoref{fig::class-complexity} show that, once we condition on scenario and complexity, differences between the GNN and LSTM architectures are modest compared with the effects of the underlying diversification parameters. Across most panels the two architectures track each other closely, and all three accuracy measures (F1, precision, recall) exhibit qualitatively similar trends. The main determinants of classification performance are the strength and direction of the diversification effects and, to a lesser extent, tree size and model complexity.
+
+Effect sizes, as proxied by the true parameter values or composite quantities, play a central role. An increase in the true net diversification rate (\(\lambda_0 - \mu_0\)) is generally associated with higher F1 scores, for PD trees (\autoref{fig::class-model}, top row, left most panel). However, this trend flattens or even reverses for ED and NND trees once \(\lambda_0 - \mu_0\) exceeds roughly 0.4. Larger absolute richness effects on speciation and extinction (\(|\beta_N|\) and \(|\gamma_N|\)) consistently depress F1 scores and recall across all scenarios, indicating that strong global diversity dependence tends to obscure differences between PD, ED and NND (\autoref{fig::class-model}, middle row). By contrast, increasing the absolute magnitude of the evolutionary relatedness effect on speciation (\(|\beta_{\varPhi}|\)) improves classification performance for PD and NND trees, with the highest scores observed for large positive \(\beta_{\varPhi}\). For ED trees, performance improves as \(\beta_{\varPhi}\) moves from negative to positive values. No robust, monotonic effect on any of the three metrics is observed for the extinction-relatedness parameter \(\gamma_{\varPhi}\); its influence on scenario recoverability appears weak compared to the speciation components ($\beta_N$ and $\beta_\varPhi$).
+
+Tree size exerts an additional, mostly positive influence on performance. For PD and ED trees, F1, precision and recall generally increase with the number of nodes, reflecting the fact that larger trees contain more branching events and thus more informative. The pattern for NND trees is less straightforward: accuracy curves are flatter and in some slices even decline in the largest size bins. This is likely due to a combination of smaller typical sizes for NND trees and reduced sample sizes in the upper quantiles (NND trees are generally much smaller in size), so the apparent downturn should be interpreted cautiously. Overall, the consistent improvement for PD and ED with increasing size supports the view that small phylogenies fall into a largely non-recoverable part of parameter space.
+
+In order to assess the impact of model complexity, we only compare medium- and high-complexity versions of the \texttt{eve} model because parameters other than speciation and extinction rates ($\lambda_0$ and $\mu_0$) are set to zero (and thus not in effect) under the low complexity setting. Similarly, we do not study species richness and evolutionary relatedness effects on extinction rate ($\gamma_N$ and $\gamma_\varPhi$) because these parameters are only in effect under the high complexity setting. We find that diversification model complexity has scenario-specific effects (\autoref{fig::class-complexity}). For PD trees, moving from the four-parameter to the six-parameter setting generally leads to marginally higher precision but substantially lower recall, resulting in a net reduction in F1 (but these patterns are not observed in the tree size effect panel). Thus, under the high-complexity model the classifier is potentially more conservative: PD predictions are more often correct when they are made, but many true PD trees are reclassified as ED or NND. For ED and NND trees, there are no clear general trends.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/all_trends_model.pdf} % Relative width to the width of the main text
+    \caption{Comparison of trends of neural network classification accuracies (changing along true value slices of the parameters) between GNN (graph neural networks) and LSTM (long short-term memory recurrent networks) performances, indicated by solid and dashed lines, and between three evolutionary scenarios (true scenario under which the trees were generated). Light yellow lines represent performances of trees generated under the phylogenetic diversity (PD) scenario, dark blue lines stand for performances of trees under the evolutionary distinctiveness (ED) scenario, and red lines stand for performances of trees under the nearest neighbor distance (NND) scenario. X-axis: true value slices of the parameters. Y-axis: classification performance metrics, as shown by the column facet strips. See \ref{appendix::classification-performance} for detailed explanation of the three classification performance metrics.}
+    \label{fig::class-model}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/all_trends_cplx.pdf} % Relative width to the width of the main text
+    \caption{Comparison of trends of neural network classification accuracies (changing along true value slices of the parameters) between medium and high complexity levels (which indicate the number of parameters used to generate the trees) as shown by solid and dashed lines. The low complexity scenario was not considered because parameters other than speciation and extinction rates are not in effect in that scenario. The comparisons were also made between three evolutionary scenarios (true scenario under which the trees were generated). Light yellow lines stand for performances of trees generated under the phylogenetic diversity (PD) scenario, dark blue lines stand for performances of trees under the evolutionary distinctiveness (ED) scenario, and red lines stand for performances of trees under the nearest neighbor distance (NND) scenario. X-axis: true value slices of the parameters. Y-axis: classification performance metrics, as shown by the column facet strips. See \ref{appendix::classification-performance} for detailed explanation of the three classification performance metrics.}
+    \label{fig::class-complexity}
+\end{figure}
+
+\subsubsection{Parameter Space Associated with Correct vs.\ Incorrect Classifications}
+\label{ch3::sec::results::classification::correct-incorrect}
+To assess which parts of parameter space are associated with successful scenario classification, we compared the generating parameters of correctly and incorrectly classified trees (\autoref{fig::param-dist-effect}). For each combination of true scenario (PD, ED, NND) and classifier architecture (GNN vs.\ LSTM), ridge--line densities show how the marginal distributions of $\lambda_0$, $\mu_0$, $\beta_N$, $\beta_{\varPhi}$, $\gamma_N$ and $\gamma_{\varPhi}$ differ between correct and incorrect predictions. We observe that correctly classified trees tend to occupy more extreme regions of parameter space for $\beta_{\varPhi}$ and less negative (smaller absolute value) regions of $\beta_N$, although NND trees are an exception. This observation further verifies the confounding effect of $\beta_N$ and the important role of the absolute effect sizes of $\beta_{\varPhi}$.
+
+The one-dimensional Kolmogorov--Smirnov tests reveal that the strongest and most systematic separations between correct and incorrect classifications occur for the richness and relatedness effects on speciation, $\beta_N$ and $\beta_{\varPhi}$. For all scenario-architecture combinations, the KS statistics for these parameters are moderate to large and the Benjamini--Hochberg adjusted $p$-values are mostly below $0.01$, indicating that the distributions of $\beta_N$ and $\beta_{\varPhi}$ differ markedly between correctly and incorrectly classified trees. For the other parameters, the patterns show only weak or sporadic differences. For our classifiers, the speciation components ($\beta_N$ and $\beta_\varPhi$) --- particularly the interaction between species richness and evolutionary relatedness --- carry more discriminative information than the extinction components ($\gamma_N$ and $\gamma_\varPhi$) or the baseline rates ($\lambda_0$ and $\mu_0$).
+
+Partial distance correlation analysis further indicates a significant global dependence between the eight-dimensional parameter vector $(\lambda_0,\mu_0,\beta_N,\beta_{\varPhi},\gamma_N,\gamma_{\varPhi},|\mathcal{T}|,\lambda_0-\mu_0)$ and the correctness indicator even after conditioning on scenario and architecture (\autoref{fig::param-dist-effect}, subtitle). Together, these findings imply that classification errors are not purely random but are concentrated in regions of parameter space where effect sizes and tree sizes jointly yield weak or ambiguous signals. Strong richness and relatedness effects carve out parameter space in which the PD, ED and NND scenarios become practically non-recoverable.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/param_dist_effect.pdf} % Relative width to the width of the main text
+    \caption{Parameter distributions for correct vs. incorrect classifications. Each panel shows ridge--line kernel density estimates of a generating parameter ($\lambda_0, \mu_0, \beta_N, \beta_{\varPhi}, \gamma_N, \gamma_{\varPhi}$; columns) for a given combination of true scenario (rows within each panel: PD, ED, NND) and classifier architecture (GNN vs.\ LSTM). Within each ridge--line, turquoise densities correspond to trees that were correctly classified and salmon densities to misclassified trees. On top of the each ridge--lines, we report the two-sample Kolmogorov--Smirnov statistic and Benjamini--Hochberg adjusted $p$-value comparing the parameter distributions between correct and incorrect trees for that scenario-architecture-parameter combination. The adjusted global dependence between the eight-dimensional parameter vector $(\lambda_0,\mu_0,\beta_N,\beta_{\varPhi},\gamma_N,\gamma_{\varPhi},|\mathcal{T}|,\lambda_0-\mu_0)$ and the correctness indicator after conditioning on scenario and architecture is significant ($p = 0.002$). Together, these summaries highlight which parameters and scenarios exhibit systematic differences between correctly and incorrectly classified trees, and where classification errors appear compatible with a lack of parameter signal.}
+    \label{fig::param-dist-effect}
+\end{figure}
+
+\subsubsection{Calibration of Scenario Probabilities}
+\label{ch3::sec::results::classification::calibration}
+Reliability diagrams for the GNN classifier (\autoref{fig::reliability-gnn}) show that, when predictions are pooled across all trees, the network is systematically overconfident. In the overall panel, the reliability curve lies below the diagonal for most confidence bins. Predictions with nominal confidence between 0.5 and 0.8 attain observed accuracies closer to 0.4-0.6, and even the highest-confidence bin (\(\hat{p}\approx 1\)) reaches an accuracy of only about 0.8. The corresponding expected calibration error (ECE) is therefore non-negligible.
+
+Stratifying by true diversification scenario (\autoref{fig::reliability-gnn}, first row, middle panel) reveals that ED is strongly overconfident across all confidence bins, with observed accuracies that are far below the reported confidences and an ECE that is much larger than for PD or NND. This aligns with the confusion matrices (\autoref{fig::confusion-matrix-model}), where ED is the hardest scenario to identify. The patterns for PD and NND are asymmetric and non-monotonic.
+
+Calibration differences between medium- and high-complexity \texttt{eve} models are relatively minor (see \autoref{fig::reliability-gnn}, top row, third column
+). The two complexity-specific curves almost coincide and are both below the diagonal. The increase of free parameters potentially only changes which class is predicted rather than how well probabilities match empirical frequencies. Calibration on all size groups show overconfidence. ECE exhibit no clear trend or difference for different complexities and tree sizes.
+
+Calibration stratified by parameter space indicates that miscalibration depends more strongly on the relatedness effect \(\beta_{\varPhi}\) than on the richness effect \(\beta_N\). Across \(\beta_N\) ranges the reliability curves are fairly similar and moderately overconfident, with modest increase in ECE as $|\beta_N|$ increases. The \(\beta_{\varPhi}\) panel shows larger between-bin variation. ECE generally decrease as \(|\beta_{\varPhi}|\) decreases. These results suggest that parameter settings in which \(\beta_{\varPhi}\) induces weak or ambiguous changes in tree shape are precisely where both classification performance and probability calibration deteriorate, reflecting a lack of practical recoverability for the \texttt{eve} scenarios in those regions of parameter space. This is also true when increasingly negative \(\beta_N\) strengthens richness-driven confounding effect by shrinking the differences in tree summary statistics among PD, ED, and NND, thereby making the scenarios less distinguishable and degrading classification performance, as observed in \citet{qin_impact_2025}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/reliability_multi_panel_GNN.pdf} % Relative width to the width of the main text
+    \caption{
+        Calibration of the GNN classifier. Each main panel shows a reliability diagram in which the observed accuracy (y-axis) is plotted against the predicted confidence (x-axis; maximum class probability) in ten confidence bins; the dashed diagonal indicates perfect calibration. Top row: overall calibration across all test trees (left); calibration stratified by true diversification scenario (PD, ED, NND; middle); and calibration for GNNs trained on medium- and high-complexity \texttt{eve} models (right). Bottom row: calibration stratified by tree size (small, medium, large; left), by ranges of the richness effect on speciation \(\beta_N\) (middle), and by ranges of the relatedness effect on speciation \(\beta_{\varPhi}\) (right). Below each reliability panel, a horizontal bar plot reports the expected calibration error (ECE) for each curve, using matching colors; smaller ECE values indicate better calibration.}
+    \label{fig::reliability-gnn}
+\end{figure}
+
+\subsection{Regression}
+\label{ch3::sec::results::regression}
+Prediction accuracy for the net diversification rate ($\lambda_0 - \mu_0$) improved with increasing true net diversification rate (see top facet rows of all panels in \autoref{fig::compare-nd}), only at the low complexity level. Similar improvement was not observed at medium and high complexity levels, not only for the net diversification rate, but for all the parameters examined. See also the figures in \ref{appendix::result-comparison}. 
+
+Training neural network regressors on partial datasets---either sliced by scenario or by tree size---did not yield obvious performance gains compared to training on complete datasets (see the performance differences between the left two panels and the right two panels of \autoref{fig::compare-nd}. See also \autoref{fig::alignment-nd}). Further quantitative analyses even showed that training the regressors on partial datasets impaired the neural networks' generalization ability, with predictions aligning closer to the midpoint of the generative parameter space of the training datasets (see \autoref{fig::alignment-nd} and compare between metrics in the same color group). When trained on complete datasets, the neural networks generally predict better on larger trees for $\lambda_0 - \mu_0$, $\beta_N$, $\gamma_N$ and $\gamma_\varPhi$.
+
+Increasing model complexity degrades performance in estimating the net diversification rate. In more complex scenarios, the expected correlation between larger tree sizes and higher accuracy diminishes, with predictions converging toward the sample mean of the parameters (points close to the red dashed line in \autoref{fig::compare-nd} and \autoref{fig::alignment-nd}; results for other parameters are in \ref{appendix::result-comparison} and \ref{appendix::result-alignment}).
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_nd.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the net diversification rate ($\lambda_0 - \mu_0$). The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue points correspond to large trees, green points to medium trees, and yellow points to large trees. When columns represent tree size groups, light yellow points correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue points to performances of trees under the evolutionary distinctiveness scenario, and red points to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the net diversification rate ($\lambda_0 - \mu_0$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-nd}
+\end{figure}
+
+In the low-complexity scenario --- a simple birth-death process --- net diversification rate estimates ($\lambda_0 - \mu_0$) appear more accurate when the actual tree sizes were near the mean of the generated sample distribution rather than the theoretical expectation conditioned on the true net diversification rate and crown age (see the left panel of \autoref{fig::impact-nd} as well as those in \autoref{fig::impact-beta-n}, \autoref{fig::impact-beta-phi}, \autoref{fig::impact-gamma-n} and \autoref{fig::impact-gamma-phi} in \ref{appendix::result-effect-size-tree-size}). In medium- and high-complexity scenarios, although theoretical expectations are unavailable, we observed that net diversification rate estimates, as well as those for other parameters ($\beta_N$, $\beta_\varPhi$, $\gamma_N$, and $\gamma_\varPhi$), were likewise more accurate when tree sizes approximated the sample’s arithmetic mean. Moreover, tree-size distributions shifted systematically with model complexity: higher-complexity simulations generally produced smaller trees, with the reduction in tree size becoming increasingly pronounced from PD to ED to NND.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/alignment_nd.png} % Relative width to the width of the main text
+    \caption{Comparison of the degree to which neural network regression estimates align with the conditional mean. There are four metrics, each describing a facet of the alignment, see \ref{appendix::alignment-metrics} for details and interpretations. Within each panel, each facet column indicates results of a evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each facet row indicates results of a diversification model differing in complexity (as indicated by the number of parameters used to generate the trees). Yellow bars stand for metrics of small trees, green bars stand for medium trees and blue bars stand for large trees. At the top of the bars, shapes represent how the datasets were sliced to train the neural networks. Circles indicate complete datasets, triangles indicate slices by evolutionary scenario and squares indicate slices by tree size group. X-axis: size group of the trees. Y-axis: value of alignment metrics.}
+    \label{fig::alignment-nd}
+\end{figure}
+
+Additionally, larger tree sizes corresponded to more accurate estimates of both the net diversification rate ($\lambda_0 - \mu_0$, see \autoref{fig::compare-nd} and \autoref{fig::impact-nd}) and the effect of species richness on extinction ($\gamma_N$, see \autoref{fig::compare-gamma-n} in \ref{appendix::result-comparison} and \autoref{fig::impact-gamma-n} in \ref{appendix::result-effect-size-tree-size}), whereas this trend was less evident for all the other parameters ($\beta_N$, $\beta_\varPhi$, and $\gamma_\varPhi$, see the other figures in \ref{appendix::result-comparison} and \ref{appendix::result-effect-size-tree-size}). When a parameter exhibited a weak correlation with tree size, increasing the tree size did not lead to substantially improved estimation accuracy. This is particularly true for the parameters of higher complexity levels (see the performances between panels within the same rows in \autoref{fig::impact-nd} and \ref{appendix::result-effect-size-tree-size}). In all cases, extremely small trees (with total number of nodes less than 50) were associated with very poor estimates.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/impact_nd.png} % Relative width to the width of the main text
+    \caption{Relationships of tree size to true parameter values and prediction errors of the net diversification rate ($\lambda_0 - \mu_0$). Within each panel, each column indicates results of an evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each row indicates results of a diversification model complexity (which indicates the number of parameters used to generate the trees). In the left panels, colors indicate the values of absolute prediction errors; as the blue points become darker, the errors become smaller thus the predictions more accurate. The red dashed lines represent expected tree size with respect to true net diversification rate and a fixed crown age 10. The pink ribbons represent possible variations of tree sizes due to stochasticity. In the right panels, the colors indicate the values of true net diversification rate. Points falling close to the vertical black dashed lines are accurate predictions (zero error). X-axis (left panel): true value of the net diversification rate ($\lambda_0 - \mu_0$). X-axis (right panel): prediction error (absolute difference between true value and predicted value). Y-axis: tree size.}
+    \label{fig::impact-nd}
+\end{figure}
+
+In the regressor misspecification test, all \texttt{eve} model scenarios are identical under low complexity setting because there is no parameters other than the baseline rates ($\lambda_0$ and $\mu_0$) in effect. Misspecification mainly affects the estimates of all parameters when trees are of medium or large size. The neural networks are always conservative by making predictions that are close to the sample mean of the training data on small trees. Regardless of which evolutionary scenario the neural networks were trained on, they produce much worse estimates when recovering parameters from trees generated under the PD scenario (where phylogenetic diversity controls the processes globally). As the real underlying scenarios of the trees to be tested shifting from global to local evolutionary forces, the estimates by the neural networks trained on all scenarios become more stable. See \autoref{fig::misspec-nd} and \autoref{fig::misspec-beta-n}, \autoref{fig::misspec-beta-phi}, \autoref{fig::misspec-gamma-n} and \autoref{fig::misspec-gamma-phi} in \ref{appendix::result-misspec} for details.
+
+\begin{sidewaysfigure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/misspec_nd.pdf} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors under misspecification. By misspecification, neural networks trained on trees under different evolutionary scenarios are used to estimate parameters on all trees, including those having different (misspecified) evolutionary scenarios. The three panels show the prediction error of three model complexity levels (which indicate the number of parameters used to generate the trees). Within each panel, each column indicates results of using neural networks trained on 3 evolutionary scenarios (see column facet strips, e.g. PD-TRAINED represents neural networks trained on trees generated under the phylogenetic diversity scenario) to estimate parameters on tree dataset generated under a particular scenario (see row facet strips, e.g. PD-TESTED indicate that neural network predictions were made on PD trees). Yellow points stand for results of small trees, green points stand for medium trees and blue points stand for large trees. X-axis: true value of the net diversification rate ($\lambda_0 - \mu_0$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::misspec-nd}
+\end{sidewaysfigure}
+
+\section{Discussion}
+\label{ch3::sec::discussion}
+\subsection{Conservative Predictions as Indicators of Limited Information}
+\label{ch3::sec::discussion::conservative-regression}
+Our regression experiments show that, for most \texttt{eve} parameters and especially in the medium- and high-complexity settings, neural networks often return predictions close to the empirical mean of the training distribution (e.g., \autoref{fig::compare-nd}, \autoref{fig::alignment-nd}, \ref{appendix::result-comparison}, \ref{appendix::result-alignment}). This pattern is strongest for the ER parameters ($\beta_N$, $\beta_{\varPhi}$, $\gamma_N$, $\gamma_{\varPhi}$), where slopes of the error-versus-truth relationships and alignment metrics indicate that predictions behave almost like constant conditional means. Under standard loss functions such as squared error or Huber loss, this behavior is expected whenever the inputs carry little information about the target: in low-signal situations, the risk-minimizing solution is to predict the mean of the conditional distribution rather than to chase noisy fluctuations (similar situation was found in \citet{qin_parameter_2025}). In our setting, the conservative predictions therefore point to parts of \texttt{eve} parameter space where extant trees potentially do not provide enough information for the networks to recover individual parameter values. Practically, this means that point estimates in those parts of parameter space should be interpreted as “typical values compatible with the data” rather than as precise predictions of the true parameters. Inference workflows that rely on such predictors should therefore report broad uncertainty, treat estimates as lower-dimensional summaries (e.g.\ of net diversification) or explicitly acknowledge that the available data support many alternative diversification histories, consistent with analytical results on non-identifiability of birth-death models from extant trees as presented by \citep{louca_extant_2020, pannetier_branching_2021}.
+
+\subsection{Tree Size, Effect Sizes and Limits of Parameter Recovery}
+\label{ch3::sec::discussion::tree-size-effect-sizes}
+Across both classification and regression analyses, tree size and the strength of diversification effects emerge as the main determinants of how much information the trees potentially contain about the underlying process. For classification, F1 scores, precision and recall generally increase with tree size for PD and ED trees (\autoref{fig::class-model} and \autoref{fig::class-complexity}). Very small trees are generally associated with very low scenario accuracy regardless of parameter values, which aligns with classical findings that tests of phylogenetic signal and model-based comparative methods have little power on small trees \citep{blomberg_testing_2003, townsend_phylogenetic_2012}, analogous to non-identifiability caused by small sample size in time-series hidden Markov models \cite{cole_parameter_2019}. The pattern for NND trees is less clear because these trees are typically small and occupy a narrow range of sizes, so even the largest NND trees in our simulations contain fewer branching events than PD and ED trees of comparable parameter values. For regression, larger trees help most clearly for estimates of net diversification rate and $\gamma_N$, with errors decreasing with size when model complexity is low and, to a lesser extent, at medium complexity (\autoref{fig::compare-nd}, \autoref{fig::impact-nd}, \autoref{fig::compare-gamma-n}). However, once the full six-parameter \texttt{eve} model is used, size-related improvements become modest or minimal and predictions for several parameters collapse back towards the empirical mean. Importantly, the trees that yield the most accurate estimates are not those with extreme sizes but those whose sizes are close to the typical sizes produced by the simulation models (\autoref{fig::impact-nd} and \autoref{fig::impact-gamma-phi}), suggesting that the networks effectively learn a mapping from size and a few coarse topological summaries to parameter averages, with limited ability to exploit more subtle shape information. After all, note that under our low-complexity setting (effectively a constant-rate birth-death process), the unlabeled tree topology is known to be independent of the speciation and extinction rates and therefore carries no information about the generative parameter \citep{steel_properties_2001,gernhard_conditioned_2008}. It is not surprising that our GNN-based approaches bring no substantial gain (see also \citep{qin_parameter_2025}). Together, these results indicate that working with larger clades of organisms helps only up to a point: larger trees improve recovery of a small number of parameters that tightly control overall diversification pace, but they do little for parameters that mainly modulate subtle ER patterns once diversity dependence and stochasticity are included.
+
+Effect sizes play an equally important role. Across scenarios and architectures, strong species richness dependence ($|\beta_N|$ and $|\gamma_N|$) consistently reduces classification accuracy and degrades regression performance. When richness effects are large, tree size reacts sensitively (we would expect smaller trees), and the resulting variation in size can overwhelm the weaker signatures of ER effects, making it harder for the networks to distinguish PD, ED and NND or to disentangle the contributions of $\beta_{\varPhi}$ and $\gamma_{\varPhi}$. In contrast, strong relatedness effects on speciation ($|\beta_{\varPhi}|$) improve scenario separability: PD and NND trees with large positive $\beta_{\varPhi}$ are classified more accurately, and correct trees in these scenarios preferentially occupy extreme $\beta_{\varPhi}$ values while avoiding strongly negative $\beta_N$ (\autoref{fig::param-dist-effect}). For ED trees, shifting $\beta_{\varPhi}$ from negative to positive values gradually improves performance, which aligns with a shift from antagonistic to reinforcing interactions between richness and relatedness on speciation (see \citep{qin_impact_2025} for how ED trees are generated). The combination of parameter-sliced accuracy curves, ridge-line distributions and statistical tests therefore provides an empirical map of the parts of parameter space where \texttt{eve} parameters and scenarios potentially leave strong enough imprints on tree shape to be recoverable, and the parts where their effects are washed out by stochasticity and richness dependence.
+
+\subsection{Scenario Overlap and Redundancy in Complex Models}
+\label{ch3::sec::discussion::scenario-redundancy}
+Our scenario-level analyses show that, even when neural networks perform better than chance, PD, ED and NND are far from being cleanly separated in tree space. Confusion matrices reveal that NND trees are generally easiest to classify, while ED trees are consistently the most difficult (\autoref{fig::confusion-matrix-model}). Many ED trees are mislabeled as NND, and PD trees are more often confused with NND than vice versa, indicating that the local ER mechanisms of ED and the neighborhood-based mechanism of NND frequently generates tree shapes that are compatible with the PD scenario. Increasing \texttt{eve} complexity exacerbates this problem: when the six-parameter model is used, misclassifications shift towards NND for all true scenarios, and scenario-specific recalls decline even though the networks are trained and tested on data generated exactly from the fitted model. The ridge-line summaries potentially also supports the idea, as correctly and incorrectly classified trees often arise from overlapping ranges of net diversification and ER effect sizes, with clear separations only in parameter-size combinations where $\beta_{\varPhi}$ is strong and tree size is moderate to large (see \autoref{fig::param-dist-effect}). It can also be seen that regression and misspecification experiments tell a similar story. Even when the networks are trained on all scenarios simultaneously, estimates for ER parameters remain conservative and close to empirical means for most of the parameter space (\autoref{fig::alignment-nd}, \autoref{fig::misspec-nd}, \ref{appendix::result-misspec}). We propose to visualize scenario redundancy as overlapping “clouds” of trees in representation space: the networks can detect broad differences between scenarios in parts of parameter space where ER effects are strong and diversity dependence is moderate, but they cannot reliably assign trees to a unique scenario in the more typical ranges of parameters explored by our simulations.
+
+We further illustrate how overlapping clusters of trees in a hypothetical representation space can obscure scenario-specific signals and drive conservative, mean-regressing predictions by our classifiers and regressors as we observed, in \autoref{fig::sim-illustration}. This schematic is generated from toy simulations.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/complexity_signal_panels_full.png} % Relative width to the width of the main text
+    \caption{Illustration of how increasing model complexity (flexibility) reduces the information that tree summaries carry about diversification parameters and scenarios. \textbf{Top row:} for three hypothetical settings, points show simulated pairs of a tree-derived summary $\mathcal{T}$ and a parameter value $\theta$, the violet dashed curve is a LOESS (locally estimated scatterplot smoothing) estimate of the conditional mean $\mathbb{E}[\theta \mid \mathcal{T}]$, and the blue horizontal line marks the unconditional mean $\mathbb{E}[\theta]$. From left to right, the relationship between $\mathcal{T}$ and $\theta$ weakens: a clear trend (high signal) is followed by a noisy trend (partial signal) and finally by an almost flat curve concentrated around the mean (little information, with many distinct parameter values producing similar summaries). \textbf{Middle row:} corresponding errors in the hypothetical estimation of parameters, where each point shows $\theta - \hat{\theta}$ against the true $\theta$; as signal decreases, errors become more structured and eventually align with a straight line, indicating that predictions collapse toward an almost constant conditional mean. \textbf{Bottom row:} schematic two-dimensional ``representation spaces'' under two hypothetical latent dimensions for three diversification scenarios (PD, ED, NND) under analogous conditions. When ER effects are strong and richness dependence is moderate (left), the three scenarios occupy well-separated clouds; with weaker or more noisy signal (middle), the clouds partially overlap; in parameter ranges similar to our typical simulations (right), the clouds strongly overlap, illustrating that the networks can still detect broad differences among scenarios in some parts of parameter space, but cannot reliably assign individual trees to a unique scenario when their representations become nearly indistinguishable.}
+    \label{fig::sim-illustration}
+\end{figure}
+
+\subsection{Practical Lessons and Recommendations}
+\label{ch3::sec::discussion::lessons}
+Although our goal was not to build production-ready predictors, the results provide several practical lessons for using neural networks with complex diversification models. First, both classification and regression outputs are most trustworthy in specific combinations of parameter values and tree sizes. Scenario labels from our classifiers are most informative for large trees (roughly more than 200 nodes) with strong positive relatedness effects on speciation and moderate richness dependence; in those cases F1 scores approach 0.8-0.9 for some scenarios, confusion matrices are dominated by the diagonal (but not for ED), and parameter distributions of correct and incorrect trees differ. In contrast, for small trees, for weak or strongly negative $\beta_{\varPhi}$, or when $|\beta_N|$ and $|\gamma_N|$ are large, our results indicate that extant trees alone do not contain enough information to support confident scenario assignments. In applied settings with complex diversification models, we therefore recommend treating our classifier outputs (or other potential neural classifiers alike) as qualitative “scenario hints” outside of the high-information parts of parameter space, and avoiding strong biological interpretations of small differences in scenario probabilities when F1 scores are low.
+
+Second, for parameter estimation, our regressors are primarily useful for tracking broad trends in net diversification and a few extinction-related effects, not for precise recovery of the full \texttt{eve} parameter vector. Estimates for $\lambda_0 - \mu_0$ and $\gamma_N$ improve with tree size and, at low complexity, can capture coarse gradients across the parameter space; however, predictions for $\beta_N$, $\beta_{\varPhi}$ and $\gamma_{\varPhi}$ are often shrunk towards empirical means and show limited correlation with the truth. In practice, this means that neural networks trained on simulated \texttt{eve} trees could be used only as fast approximators for low-dimensional summaries, such as net diversification rate or composite ER indices, but should not be relied on for full parameter recovery unless extensive validation shows that the empirical trees lie in a high-information part of the simulated space.
+
+Third, our calibration analysis highlights that miscalibration is most severe for the hardest scenario in terms of recoverability (ED) and for parameter ranges where relatedness effects are weak or ambiguous. Across most strata the GNN is overconfident, with predicted probabilities overstating actual accuracies by 10-30 percentage points. For downstream applications that require probabilistic statements, this suggests incorporating explicit calibration steps (e.g.\ temperature scaling or isotonic regression; \citep{zadrozny_transforming_2002,niculescu-mizil_predicting_2005,guo_calibration_2017}) trained on held-out simulated data, or moving to approaches that output predictive intervals or sets---for example, conformal prediction \citep{shafer_tutorial_2008,lei_distribution-free_2018,angelopoulos_gentle_2022} or Bayesian neural architectures \citep{gal_dropout_2016,blundell_weight_2015,lakshminarayanan_simple_2017}---so that lack of information is expressed as wide uncertainty rather than overconfident point predictions. Such approaches cannot create information that is not present in the trees, but they can reduce the risk of over-interpretation.
+
+Finally, our results underscore that attempts to fit highly flexible diversification models to single empirical trees should be paired with careful simulation-based diagnostics. Before estimating parameters or comparing complex scenarios on real data, one can run our workflow (or similar simulation pipelines) under plausible parameter ranges and tree sizes and check whether the empirical tree falls into a region where classification and regression errors are acceptably low. If not, simpler models tailored to specific hypotheses (e.g., omitting certain scenarios, constraining parameters to a lower-dimension, or focusing a subset of parameters) may be more appropriate. Complementary data sources (e.g., fossils, traits, spatial information or replicated trees across clades) are likely necessary to break the many-to-one mappings between diversification histories and extant trees \citep{louca_extant_2020}.
+
+\clearpage
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries} % style
+  {\thesubsection)}            % label: A)
+  {0.8em}                      % spacing between label and title
+  {}                           % before-code
+\section{Appendix}
+\setcounter{subsection}{0}
+\subsection{Total Loss}
+\label{appendix::total_loss}
+In regression tasks, total loss comprises three key components: Huber loss, link prediction loss and entropy of regularization. Huber loss was used for optimizing regression accuracy while the remaining components focused on alleviating a possible issue where GNN can be hard to train, if incorporating the differentiable pooling method \citep{ying_hierarchical_2018}.
+
+The Huber loss \citep{huber_robust_1992} for vectors \(y\) and \(\hat{y}\), each with \(n\) elements, computed as the average loss across all elements, is given by:
+
+\begin{equation}
+    L_{\delta}(\mathbf{y}, \mathbf{\hat{y}}) = \frac{1}{n} \sum_{i=1}^{n} 
+    \begin{cases} 
+    \frac{1}{2}(y_i - \hat{y}_i)^2 & \text{for } |y_i - \hat{y}_i| \leq \delta, \\
+    \delta(|y_i - \hat{y}_i| - \frac{1}{2}\delta) & \text{otherwise,}
+    \end{cases}
+    \label{ch3::equation::huber_loss}
+\end{equation}
+
+where \(\mathbf{y}\) is the true value vector comprising the ground truth parameters used for simulating a phylogenetic tree,
+ \(\mathbf{\hat{y}}\) is the predicted value vector comprising the parameter predictions, \(y_i\) and \(\hat{y}_i\) are the \(i\)-th elements of \(\mathbf{y}\) and \(\mathbf{\hat{y}}\) respectively, \(n\) is the number of elements in the vectors \(\mathbf{y}\) and \(\mathbf{\hat{y}}\) and \(\delta\) is the threshold parameter that defines the transition from squared to linear loss (here loss refers to the difference between ground truth and predicted values). In our research, we set $\delta = 0.8$ for all the training sessions, making the neural networks more sensitive to smaller errors and more robust to outliers .
+
+The total loss function $L_1$ in regression is given by
+
+\begin{equation}
+    \textit{$L_1$} =  L_{\delta}(\mathbf{y}, \mathbf{\hat{y}}) + \textit{L}_\text{LP} + \textit{L}_\text{E},
+    \label{equation::total_loss_reg}
+\end{equation}
+
+where $\textit{L}_\text{LP}$ is the link prediction loss and $\textit{L}_\text{E}$ is the entropy of regularization, see \citet{ying_hierarchical_2018} for their definitions.
+
+In classification tasks, we replaced the Huber loss component with cross-entropy loss for the purpose of multi-class classification. It measures the difference between the true class labels and the predicted probabilities, penalizing confident but incorrect predictions more heavily. For a set of \(n\) instances, the cross-entropy loss between the true labels \(\mathbf{y}\) and the predicted probabilities \(\mathbf{\hat{y}}\) is defined as:
+
+\begin{equation}
+    L_{\text{CE}}(\mathbf{y}, \mathbf{\hat{y}}) = -\frac{1}{n} \sum_{i=1}^{n} \sum_{c=1}^{C} y_{i,c} \log(\hat{y}_{i,c}),
+    \label{equation::cross_entropy_loss}
+\end{equation}
+
+where \(n\) is the number of instances in the dataset, \(C\) is the total number of classes, \(y_{i,c}\) is a binary indicator (0 or 1) if class label \(c\) is the correct classification for instance \(i\), \(\hat{y}_{i,c}\) is the predicted probability that instance \(i\) belongs to class \(c\) and \(\log(\hat{y}_{i,c})\) is the natural logarithm of the predicted probability.
+
+The total loss $L_2$ in classification is given by
+
+\begin{equation}
+    \textit{$L_2$} =  L_{\text{CE}}(\mathbf{y}, \mathbf{\hat{y}}) + \textit{L}_\text{LP} + \textit{L}_\text{E},
+    \label{equation::total_loss_cls}
+\end{equation}
+
+where $\textit{L}_\text{LP}$ is the link prediction loss and $\textit{L}_\text{E}$ is the entropy of regularization.
+
+\clearpage
+\subsection{Complete and Partial Data Training}
+\label{appendix::result-comparison}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_beta_n.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the species richness effect size on speciation ($\beta_N$). The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue points correspond to large trees, green points to medium trees, and yellow points to large trees. When columns represent tree size groups, light yellow points correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue points to performances of trees under the evolutionary distinctiveness scenario, and red points to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the species richness effect size on speciation ($\beta_N$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-beta-n}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_beta_phi.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the evolutionary relatedness effect size on speciation ($\beta_\varPhi$). The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue points correspond to large trees, green points to medium trees, and yellow points to large trees. When columns represent tree size groups, light yellow points correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue points to performances of trees under the evolutionary distinctiveness scenario, and red points to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the evolutionary relatedness effect size on speciation ($\beta_\varPhi$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-beta-phi}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_gamma_n.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the species richness effect size on extinction ($\gamma_N$). The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue points correspond to large trees, green points to medium trees, and yellow points to large trees. When columns represent tree size groups, light yellow points correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue points to performances of trees under the evolutionary distinctiveness scenario, and red points to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the species richness effect size on extinction ($\gamma_N$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-gamma-n}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_gamma_phi.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the evolutionary relatedness effect size on extinction ($\gamma_\varPhi$). The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue points correspond to large trees, green points to medium trees, and yellow points to large trees. When columns represent tree size groups, light yellow points correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue points to performances of trees under the evolutionary distinctiveness scenario, and red points to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the evolutionary relatedness effect size on extinction ($\gamma_\varPhi$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-gamma-phi}
+\end{figure}
+
+\clearpage
+\subsection{Contour Plots of the Point Estimates}
+\label{appendix::contour-plots}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_nd_cnt.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the net diversification rate ($\lambda_0 - \mu_0$), using contour plot instead of point cloud. The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue contours correspond to large trees, green contours to medium trees, and yellow contours to large trees. When columns represent tree size groups, light yellow contours correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue contours to performances of trees under the evolutionary distinctiveness scenario, and red contours to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the net diversification rate ($\lambda_0 - \mu_0$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-nd-cnt}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_beta_n_cnt.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the species richness effect size on speciation ($\beta_N$), using contour plot instead of point cloud. The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue contours correspond to large trees, green contours to medium trees, and yellow contours to large trees. When columns represent tree size groups, light yellow contours correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue contours to performances of trees under the evolutionary distinctiveness scenario, and red contours to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the species richness effect size on speciation ($\beta_N$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-beta-n-cnt}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_beta_phi_cnt.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the evolutionary relatedness effect size on speciation ($\beta_\varPhi$), using contour plot instead of point cloud. The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue contours correspond to large trees, green contours to medium trees, and yellow contours to large trees. When columns represent tree size groups, light yellow contours correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue contours to performances of trees under the evolutionary distinctiveness scenario, and red contours to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the evolutionary relatedness effect size on speciation ($\beta_\varPhi$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-beta-phi-cnt}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_gamma_n_cnt.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the species richness effect size on extinction ($\gamma_N$), using contour plot instead of point cloud. The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue contours correspond to large trees, green contours to medium trees, and yellow contours to large trees. When columns represent tree size groups, light yellow contours correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue contours to performances of trees under the evolutionary distinctiveness scenario, and red contours to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the species richness effect size on extinction ($\gamma_N$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-gamma-n-cnt}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/comp_gamma_phi_cnt.png} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors along true values of the evolutionary relatedness effect size on extinction ($\gamma_\varPhi$), using contour plot instead of point cloud. The left two panels show the results when the neural networks were trained on complete datasets. The right two panels show the results when the neural networks were trained on partial datasets (training datasets were sliced either by evolutionary scenarios or by tree size groups while in visualization we slice by both). Within each panel, each facet column indicates results of either an evolutionary scenario or a tree size group. Each facet row indicates results of a diversification model complexity. When columns represent scenario groups, blue contours correspond to large trees, green contours to medium trees, and yellow contours to large trees. When columns represent tree size groups, light yellow contours correspond to performances of trees generated under the phylogenetic diversity scenario, dark blue contours to performances of trees under the evolutionary distinctiveness scenario, and red contours to performances of trees under the nearest neighbor distance scenario. X-axis: true value of the evolutionary relatedness effect size on extinction ($\gamma_\varPhi$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::compare-gamma-phi-cnt}
+\end{figure}
+
+\clearpage
+\subsection{Alignment with Conditional Mean}
+\label{appendix::result-alignment}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/alignment_beta_n.png} % Relative width to the width of the main text
+    \caption{Comparison of the degree to which neural network regression estimates align with the conditional mean. There are four metrics, each describing a facet of the alignment, see \ref{appendix::alignment-metrics} for details and interpretations. Within each panel, each facet column indicates results of a evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each facet row indicates results of a diversification model differing in complexity (as indicated by the number of parameters used to generate the trees). Yellow bars stand for metrics of small trees, green bars stand for medium trees and blue bars stand for large trees. At the top of the bars, shapes represent how the datasets were sliced to train the neural networks. Circles indicate complete datasets, triangles indicate slices by evolutionary scenario and squares indicate slices by tree size group. X-axis: size group of the trees. Y-axis: value of alignment metrics.}
+    \label{fig::alignment-beta-n}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/alignment_beta_phi.png} % Relative width to the width of the main text
+    \caption{Comparison of the degree to which neural network regression estimates align with the conditional mean. There are four metrics, each describing a facet of the alignment, see \ref{appendix::alignment-metrics} for details and interpretations. Within each panel, each facet column indicates results of a evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each facet row indicates results of a diversification model differing in complexity (as indicated by the number of parameters used to generate the trees). Yellow bars stand for metrics of small trees, green bars stand for medium trees and blue bars stand for large trees. At the top of the bars, shapes represent how the datasets were sliced to train the neural networks. Circles indicate complete datasets, triangles indicate slices by evolutionary scenario and squares indicate slices by tree size group. X-axis: size group of the trees. Y-axis: value of alignment metrics.}
+    \label{fig::alignment-beta-phi}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/alignment_gamma_n.png} % Relative width to the width of the main text
+    \caption{Comparison of the degree to which neural network regression estimates align with the conditional mean. There are four metrics, each describing a facet of the alignment, see \ref{appendix::alignment-metrics} for details and interpretations. Within each panel, each facet column indicates results of a evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each facet row indicates results of a diversification model differing in complexity (as indicated by the number of parameters used to generate the trees). Yellow bars stand for metrics of small trees, green bars stand for medium trees and blue bars stand for large trees. At the top of the bars, shapes represent how the datasets were sliced to train the neural networks. Circles indicate complete datasets, triangles indicate slices by evolutionary scenario and squares indicate slices by tree size group. X-axis: size group of the trees. Y-axis: value of alignment metrics.}
+    \label{fig::alignment-gamma-n}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/alignment_gamma_phi.png} % Relative width to the width of the main text
+    \caption{Comparison of the degree to which neural network regression estimates align with the conditional mean. There are four metrics, each describing a facet of the alignment, see \ref{appendix::alignment-metrics} for details and interpretations. Within each panel, each facet column indicates results of a evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each facet row indicates results of a diversification model differing in complexity (as indicated by the number of parameters used to generate the trees). Yellow bars stand for metrics of small trees, green bars stand for medium trees and blue bars stand for large trees. At the top of the bars, shapes represent how the datasets were sliced to train the neural networks. Circles indicate complete datasets, triangles indicate slices by evolutionary scenario and squares indicate slices by tree size group. X-axis: size group of the trees. Y-axis: value of alignment metrics.}
+    \label{fig::alignment-gamma-phi}
+\end{figure}
+
+\clearpage
+\subsection{Distribution of Parameters}
+\label{appendix::dist-params}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/params_dist.png} % Relative width to the width of the main text
+    \caption{Generation parameter densities of phylogenetic trees in the training and validation dataset, before splitting. The densities of the trees in the test dataset are similar. Each panel displays the density of one tree generation parameter. Within panel, each ridge--line displays one angle view. The first ridge--line shows density of all trees. The second shows only NND (nearest-neighbor distance scenario) trees. The third shows only ED (evolutionary distinctiveness scenario) trees. The fourth shows only PD (phylogenetic diversity) trees.}
+    \label{fig::params-dist}
+\end{figure}
+
+\clearpage
+\subsection{Effect Size and Tree Size}
+\label{appendix::result-effect-size-tree-size}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/impact_beta_n.png} % Relative width to the width of the main text
+    \caption{Relationships of tree size to true parameter values and prediction errors of the species richness effect size on speciation ($\beta_N$). Within each panel, each column indicates results of an evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each row indicates results of a diversification model complexity (which indicates the number of parameters used to generate the trees). In the left panels, colors indicate the values of absolute prediction errors; as the blue points become darker, the errors become smaller thus the predictions more accurate. In the right panels, the colors indicate the values of true parameter. Points falling close to the vertical black dashed lines are accurate predictions (zero error). X-axis (left panel): true parameter values. X-axis (right panel): prediction error (absolute difference between true value and predicted value). Y-axis: tree size.}
+    \label{fig::impact-beta-n}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/impact_beta_phi.png} % Relative width to the width of the main text
+    \caption{Relationships of tree size to true parameter values and prediction errors of the evolutionary relatedness effect size on speciation ($\beta_\varPhi$). Within each panel, each column indicates results of an evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each row indicates results of a diversification model complexity (which indicates the number of parameters used to generate the trees). In the left panels, colors indicate the values of absolute prediction errors; as the blue points become darker, the errors become smaller thus the predictions more accurate. In the right panels, the colors indicate the values of true parameter. Points falling close to the vertical black dashed lines are accurate predictions (zero error). X-axis (left panel): true parameter values. X-axis (right panel): prediction error (absolute difference between true value and predicted value). Y-axis: tree size.}
+    \label{fig::impact-beta-phi}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/impact_gamma_n.png} % Relative width to the width of the main text
+    \caption{Relationships of tree size to true parameter values and prediction errors of the species richness effect size on extinction ($\gamma_N$). Within each panel, each column indicates results of an evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each row indicates results of a diversification model complexity (which indicates the number of parameters used to generate the trees). In the left panels, colors indicate the values of absolute prediction errors; as the blue points become darker, the errors become smaller thus the predictions more accurate. In the right panels, the colors indicate the values of true parameter. Points falling close to the vertical black dashed lines are accurate predictions (zero error). X-axis (left panel): true parameter values. X-axis (right panel): prediction error (absolute difference between true value and predicted value). Y-axis: tree size.}
+    \label{fig::impact-gamma-n}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/impact_gamma_phi.png} % Relative width to the width of the main text
+    \caption{Relationships of tree size to true parameter values and prediction errors of the evolutionary relatedness effect size on extinction ($\gamma_\varPhi$). Within each panel, each column indicates results of an evolutionary scenario (PD for phylogenetic diversity, ED for evolutionary distinctiveness, NND for nearest neighbor distance); each row indicates results of a diversification model complexity (which indicates the number of parameters used to generate the trees). In the left panels, colors indicate the values of absolute prediction errors; as the blue points become darker, the errors become smaller thus the predictions more accurate. In the right panels, the colors indicate the values of true parameter. Points falling close to the vertical black dashed lines are accurate predictions (zero error). X-axis (left panel): true parameter values. X-axis (right panel): prediction error (absolute difference between true value and predicted value). Y-axis: tree size.}
+    \label{fig::impact-gamma-phi}
+\end{figure}
+
+\clearpage
+\subsection{Regressor Misspecification}
+\label{appendix::result-misspec}
+\begin{sidewaysfigure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/misspec_beta_n.pdf} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors under misspecification. By misspecification, neural networks trained on trees under different evolutionary scenarios are used to estimate parameters on all trees, including those having different (misspecified) evolutionary scenarios. The three panels show the prediction error of three model complexity levels (which indicate the number of parameters used to generate the trees). Within each panel, each column indicates results of using neural networks trained on 3 evolutionary scenarios (see column facet strips, e.g. PD-TRAINED represents neural networks trained on trees generated under the phylogenetic diversity scenario) to estimate parameters on tree dataset generated under a particular scenario (see row facet strips, e.g. PD-TESTED indicate that neural network predictions were made on PD trees). Yellow points stand for results of small trees, green points stand for medium trees and blue points stand for large trees. X-axis: true value of the species richness effect size on speciation ($\beta_N$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::misspec-beta-n}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/misspec_beta_phi.pdf} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors under misspecification. By misspecification, neural networks trained on trees under different evolutionary scenarios are used to estimate parameters on all trees, including those having different (misspecified) evolutionary scenarios. The three panels show the prediction error of three model complexity levels (which indicate the number of parameters used to generate the trees). Within each panel, each column indicates results of using neural networks trained on 3 evolutionary scenarios (see column facet strips, e.g. PD-TRAINED represents neural networks trained on trees generated under the phylogenetic diversity scenario) to estimate parameters on tree dataset generated under a particular scenario (see row facet strips, e.g. PD-TESTED indicate that neural network predictions were made on PD trees). Yellow points stand for results of small trees, green points stand for medium trees and blue points stand for large trees. X-axis: true value of the evolutionary relatedness effect size on speciation ($\beta_\varPhi$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::misspec-beta-phi}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/misspec_gamma_n.pdf} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors under misspecification. By misspecification, neural networks trained on trees under different evolutionary scenarios are used to estimate parameters on all trees, including those having different (misspecified) evolutionary scenarios. The three panels show the prediction error of three model complexity levels (which indicate the number of parameters used to generate the trees). Within each panel, each column indicates results of using neural networks trained on 3 evolutionary scenarios (see column facet strips, e.g. PD-TRAINED represents neural networks trained on trees generated under the phylogenetic diversity scenario) to estimate parameters on tree dataset generated under a particular scenario (see row facet strips, e.g. PD-TESTED indicate that neural network predictions were made on PD trees). Yellow points stand for results of small trees, green points stand for medium trees and blue points stand for large trees. X-axis: true value of the species richness effect size on extinction ($\gamma_N$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::misspec-gamma-n}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{chapter3/misspec_gamma_phi.pdf} % Relative width to the width of the main text
+    \caption{Comparison of neural network regression errors under misspecification. By misspecification, neural networks trained on trees under different evolutionary scenarios are used to estimate parameters on all trees, including those having different (misspecified) evolutionary scenarios. The three panels show the prediction error of three model complexity levels (which indicate the number of parameters used to generate the trees). Within each panel, each column indicates results of using neural networks trained on 3 evolutionary scenarios (see column facet strips, e.g. PD-TRAINED represents neural networks trained on trees generated under the phylogenetic diversity scenario) to estimate parameters on tree dataset generated under a particular scenario (see row facet strips, e.g. PD-TESTED indicate that neural network predictions were made on PD trees). Yellow points stand for results of small trees, green points stand for medium trees and blue points stand for large trees. X-axis: true value of the evolutionary relatedness effect size on extinction ($\gamma_\varPhi$). Y-axis: prediction error (absolute difference between true value and predicted value).}
+    \label{fig::misspec-gamma-phi}
+\end{sidewaysfigure}
+
+\clearpage
+\subsection{Details of Classification Performance Metrics}
+\label{appendix::classification-performance}
+This appendix summarizes the notation and formulas used for the classification metrics reported in the main text. Let \(y_i \in \{\mathrm{PD},\mathrm{ED},\mathrm{NND}\}\) denote the true class of tree \(i\), and \(\widehat{y}_i\) the predicted class (with the largest probability) returned by a classifier. For a given target class \(k\), we define the usual entries of the \(2\times 2\) contingency table as
+\[
+\mathrm{TP}_k = \sum_i \mathbb{I}(y_i = k, \widehat{y}_i = k), \quad
+\mathrm{FP}_k = \sum_i \mathbb{I}(y_i \neq k, \widehat{y}_i = k),
+\]
+\[
+\mathrm{FN}_k = \sum_i \mathbb{I}(y_i = k, \widehat{y}_i \neq k), \quad
+\mathrm{TN}_k = \sum_i \mathbb{I}(y_i \neq k, \widehat{y}_i \neq k),
+\]
+where \(\mathbb{I}(\cdot)\) denotes the indicator function. The class-wise precision, recall, and F1-score are then given by
+\[
+\mathrm{Prec}_k = \frac{\mathrm{TP}_k}{\mathrm{TP}_k + \mathrm{FP}_k}, \qquad
+\mathrm{Rec}_k  = \frac{\mathrm{TP}_k}{\mathrm{TP}_k + \mathrm{FN}_k},
+\]
+\[
+\mathrm{F1}_k = \frac{2\,\mathrm{Prec}_k\,\mathrm{Rec}_k}{\mathrm{Prec}_k + \mathrm{Rec}_k},
+\]
+with the convention that ratios with zero denominators are treated as undefined and omitted from macro-averages. Overall (micro-averaged) accuracy is defined as
+\[
+\mathrm{Acc} = \frac{1}{N} \sum_i \mathbb{I}(y_i = \widehat{y}_i),
+\]
+where \(N\) is the total number of test trees. Unless stated otherwise, we report macro-averaged precision, recall, and F1-score obtained by taking the unweighted arithmetic mean of the class-wise scores.
+
+For confusion matrices, we index rows by the true class \(r\) and columns by the predicted class \(c\). The raw counts are \(C_{rc} = \sum_i \mathbb{I}(y_i = r, \widehat{y}_i = c)\), and the row-normalized entries
+\[
+\tilde{C}_{rc} = \frac{C_{rc}}{\sum_{c'} C_{rc'}}
+\]
+sum to one within each row. Hence, \(\tilde{C}_{rr}\) equals the class-wise recall for class \(r\), and \(\tilde{C}_{rc}\) for \(c\neq r\) equals the conditional probability that a tree from class \(r\) is misclassified as class \(c\).
+
+When comparing two methods \(A\) and \(B\), we summarize differences in recall patterns using
+\[
+\Delta p_{rc} = 100\bigl(\tilde{C}^{(B)}_{rc} - \tilde{C}^{(A)}_{rc}\bigr),
+\]
+the change in row-normalized recall (in percentage points) for cell \((r,c)\). Positive values indicate that method \(B\) predicts class \(c\) more often than method \(A\) for trees with true class \(r\), and negative values indicate the reverse.
+
+For the calibration analysis, we follow the same binning scheme as in \autoref{fig::class-complexity}. The reliability diagram is obtained by plotting \(\mathrm{conf}(B_m)\) against \(\mathrm{acc}(B_m)\) for each bin \(m\), together with the diagonal line \(\mathrm{acc}=\mathrm{conf}\). The expected calibration error (ECE) is computed as
+\[
+\mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{N} \bigl|\mathrm{acc}(B_m)-\mathrm{conf}(B_m)\bigr|,
+\]
+where \(N\) is the total number of test trees in the stratum under consideration. Lower ECE values correspond to better-calibrated predictive probabilities.
+
+\clearpage
+\subsection{Definitions and Interpretations of the Alignment Metrics}
+\label{appendix::alignment-metrics}
+Several metrics are computed to assess the extent to which the neural network predictions align with, or deviate from, merely reporting the conditional mean.
+
+Let $x$ denote the true value of the quantity under investigation and let 
+\[
+y = x - \widehat{x}
+\]
+represent the prediction error, where $\widehat{x}$ is the neural network prediction. In each subgroup, a linear model is fitted via 
+\[
+y = \beta_0 + \beta_1 x.
+\]
+
+The coefficient of determination, denoted by $R^2$, is used as a metric of prediction alignment to the conditional mean. It is defined as
+\[
+R^2 = 1 - \frac{\sum_{i=1}^n (y_i - \hat{y}_i)^2}{\sum_{i=1}^n (y_i - \bar{y})^2},
+\]
+where $\hat{y}_i$ are the fitted values from the regression and $\bar{y}$ is the mean of the observed $y$ values. A high $R^2$ indicates that a large proportion of the variability in the prediction error is explained by the true values, suggesting that the neural network predictions are largely driven by the conditional mean relationship. A low $R^2$ implies that the neural network is capturing additional patterns beyond this baseline.
+
+The slope difference is defined as
+\[
+\Delta_{\mathrm{slope}} = \hat{\beta}_1 - 1,
+\]
+where $\hat{\beta}_1$ is the estimated slope from the regression. When predictions are simply the conditional mean, one would expect a near-unit slope; thus, a slope difference close to zero indicates strong alignment with the conditional mean. A large absolute value of $\Delta_{\mathrm{slope}}$ signifies that the fitted relationship deviates substantially from a unit slope, implying that the neural network is capturing additional signal beyond the conditional mean.
+
+Distance correlation is employed to quantify the overall dependence between $x$ and $y$ without assuming any specific functional form. It is defined as
+\[
+\mathrm{dCor}(x,y) = \frac{\mathrm{dCov}(x,y)}{\sqrt{\mathrm{dCov}(x,x)\,\mathrm{dCov}(y,y)}},
+\]
+where $\mathrm{dCov}$ denotes the distance covariance. A high distance correlation indicates a strong association between the true values and the prediction error, implying a scenario where the predictions are largely driven by the conditional mean. A low distance correlation, on the other hand, suggests that the neural network is exploiting additional information.
+
+Spearman's rank correlation coefficient provides a robust, nonparametric measure of the monotonic association between \(x\) and \(y\). When the network simply reports the conditional mean, the prediction error \(y\) should vary monotonically with \(x\) (for example, as \(y = x - c\) for some constant \(c\)), resulting in a high absolute Spearman correlation (close to 1). A Spearman correlation near zero, however, indicates that the prediction error does not follow a monotonic trend with respect to \(x\); this lack of an association implies that the network’s predictions capture additional patterns or signals beyond the conditional mean.
+
+\clearpage
+\subsection{Parameter and Tree Size Slices}
+\label{appendix::pars-slices}
+\input{chapter3/cls-slices}
+
+\clearpage
+\subsection{Mean, Variance, and Approximate Confidence Interval}
+\label{appendix::confidence-birthdeath}
+\noindent
+Consider a linear birth--death process \(\{N(t)\}_{t\ge 0}\) with \(N(0)=1\). Each lineage gives birth at rate \(\lambda\) and dies at rate \(\mu\), independently across lineages. Let \(r=\lambda-\mu\).
+
+\subsubsection*{Mean}
+Let \(M(t)=\mathbb{E}[N(t)]\). Conditional on \(N(t)=n\), the total birth rate is \(n\lambda\) (increasing the count by \(1\)) and the total death rate is \(n\mu\) (decreasing the count by \(1\)). Taking expectations yields
+\[
+\frac{\mathrm{d}}{\mathrm{d}t}M(t)
+=
+\mathbb{E}[\lambda N(t)-\mu N(t)]
+=
+(\lambda-\mu)M(t)
+=
+r\,M(t),
+\qquad M(0)=1.
+\]
+Hence,
+\[
+\boxed{\mathbb{E}[N(t)]=M(t)=e^{rt}.}
+\]
+
+\subsubsection*{Second Moment and Variance}
+Write \(S(t)=\mathbb{E}[N(t)^2]\). Using the standard jump-moment calculation, conditional on \(N(t)=n\),
+\[
+N \to n+1 \text{ at rate } n\lambda,
+\qquad
+N \to n-1 \text{ at rate } n\mu.
+\]
+Therefore,
+\[
+\frac{\mathrm{d}}{\mathrm{d}t}S(t)
+=
+\mathbb{E}\!\left[
+n\lambda\bigl((n+1)^2-n^2\bigr)
++
+n\mu\bigl((n-1)^2-n^2\bigr)
+\right].
+\]
+Since \((n+1)^2-n^2=2n+1\) and \((n-1)^2-n^2=-2n+1\), we obtain
+\[
+\frac{\mathrm{d}}{\mathrm{d}t}S(t)
+=
+\lambda\,\mathbb{E}[2N(t)^2+N(t)]
++
+\mu\,\mathbb{E}[-2N(t)^2+N(t)]
+=
+2r\,S(t)+(\lambda+\mu)M(t).
+\]
+With \(M(t)=e^{rt}\) and \(S(0)=\mathbb{E}[N(0)^2]=1\), we solve the linear ODE
+\[
+S'(t)-2rS(t)=(\lambda+\mu)e^{rt}.
+\]
+
+\paragraph{Case \(\lambda\neq\mu\) (i.e.\ \(r\neq 0\)).}
+Using the integrating factor \(e^{-2rt}\),
+\[
+\frac{\mathrm{d}}{\mathrm{d}t}\bigl(S(t)e^{-2rt}\bigr)=(\lambda+\mu)e^{-rt},
+\]
+so
+\[
+S(t)
+=
+\frac{2\lambda}{r}e^{2rt}
+-
+\frac{\lambda+\mu}{r}e^{rt}.
+\]
+Hence,
+\[
+\mathrm{Var}[N(t)]
+=
+S(t)-M(t)^2
+=
+\frac{\lambda+\mu}{r}\,e^{rt}\bigl(e^{rt}-1\bigr).
+\]
+That is,
+\[
+\boxed{
+\mathrm{Var}[N(t)]
+=
+\frac{\lambda+\mu}{\lambda-\mu}\,
+e^{(\lambda-\mu)t}\Bigl(e^{(\lambda-\mu)t}-1\Bigr),
+\qquad \lambda\neq\mu.
+}
+\]
+
+\paragraph{Critical case \(\lambda=\mu\) (i.e.\ \(r=0\)).}
+Then \(M(t)\equiv 1\), and the moment equation reduces to \(S'(t)=2\lambda M(t)=2\lambda\) with \(S(0)=1\), giving
+\[
+S(t)=1+2\lambda t,
+\qquad
+\boxed{\mathrm{Var}[N(t)]=S(t)-M(t)^2=2\lambda t.}
+\]
+
+\subsubsection*{Approximate Normal Confidence Interval for \(N(t)\)}
+For sufficiently large expected counts (typically when \(\lambda>\mu\) and \(t\) is not too small), one may use a crude normal approximation
+\[
+N(t)\approx \mathcal{N}\!\bigl(M(t),\,\mathrm{Var}[N(t)]\bigr).
+\]
+Let \(z_{1-\alpha/2}\) denote the standard normal critical value (e.g.\ \(z_{0.975}\approx 1.96\)). An approximate two-sided \((1-\alpha)\) interval is
+\[
+\boxed{
+M(t)\ \pm\ z_{1-\alpha/2}\sqrt{\mathrm{Var}[N(t)]}.
+}
+\]
+Because \(N(t)\) is discrete and can be highly skewed (especially when extinction probability is non-negligible), this interval should be interpreted cautiously; in practice one may also truncate the lower bound at \(0\).
+}

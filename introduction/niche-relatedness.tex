@@ -1,0 +1,60 @@
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    x=0.6cm,
+    y=0.6cm,
+    >=Stealth
+  ]
+
+  % --- Left: equivalent species ---
+  \begin{scope}
+    % big niche box
+    \draw[accentred,dashed,thick,rounded corners]
+      (0,0) rectangle (5.17,3);
+    \node[accentred,anchor=south west] at (0,3.05)
+      {\scriptsize total niche space};
+
+    % identical species boxes
+    \foreach \x/\y in {0.3/0.3, 1.5/0.3, 2.7/0.3, 3.9/0.3,
+                       0.3/1.2, 1.5/1.2, 2.7/1.2, 3.9/1.2,
+                       0.3/2.1, 1.5/2.1, 2.7/2.1, 3.9/2.1} {
+      \draw[treegray,fill=pastelblue] (\x,\y) rectangle ++(1.0,0.6);
+    }
+
+    \node[treegray,anchor=north west] at (0, -0.3)
+      {\scriptsize species treated as equivalent};
+  \end{scope}
+
+  % --- Right: relatedness-dependent niches ---
+  \begin{scope}[xshift=4.2cm]
+    % big niche box
+    \draw[accentred,dashed,thick,rounded corners]
+      (0,0) rectangle (5.17,3);
+    \node[accentred,anchor=south west] at (0,3.05)
+      {\scriptsize total niche space};
+
+    % species with varying widths & colors
+    % clade 1 (similar, close relatives)
+    \draw[fill=pastelblue,draw=treegray] (0.3,0.3) rectangle ++(1.4,0.6);
+    \draw[fill=pastelblue!80!accentred,draw=treegray] (1.8,0.3) rectangle ++(1.3,0.6);
+    \draw[fill=pastelblue!60!accentred,draw=treegray] (3.2,0.3) rectangle ++(1.1,0.6);
+
+    % clade 2 (different niche cluster)
+    \draw[fill=pastelpink,draw=treegray] (0.4,1.4) rectangle ++(0.9,0.7);
+    \draw[fill=pastelpink!90!accentorange,draw=treegray] (1.6,1.5) rectangle ++(1.6,0.6);
+
+    % a highly distinct species
+    \draw[fill=accentorange!40,draw=treegray,thick] (3.0,2.0) rectangle ++(1.8,0.8);
+
+    % little tombstones for extinctions
+    \draw[treegray,fill=treegray!10] (0.6,2.1) -- ++(0.0,0.4) -- ++(0.3,0) -- ++(0,-0.4) -- cycle;
+    \draw[treegray,fill=treegray!10] (2.3,0.9) -- ++(0.0,0.4) -- ++(0.3,0) -- ++(0,-0.4) -- cycle;
+
+    \node[treegray,anchor=north west, xshift=-5.4] at (0, -0.3)
+      {\scriptsize niches structured by relatedness};
+  \end{scope}
+
+  \end{tikzpicture}
+  \caption{Conceptual illustration of species non-equivalence. Left: all species are treated as equivalent units occupying similar amounts of niche space. Right: niche widths and positions differ, reflecting evolutionary relatedness and ecological similarity; closely related species cluster in niche space and may interact more strongly.}
+  \label{fig::intro::niche-space-tile}
+\end{figure}

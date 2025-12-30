@@ -1,0 +1,51 @@
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.4cm,
+    tip/.style={circle,inner sep=1pt},
+    >=Stealth
+  ]
+
+  % Background highlight for conflicting area
+  \fill[pastelpink] (0.4,0.0) -- (3.0,0.0) -- (3.0,2.0) -- (0.4,2.0) -- cycle;
+
+  % Nodes
+  \node[tip] (A) at (0,1.5) {};
+  \node[tip] (B) at (0,0.5) {};
+  \node[tip] (C) at (3.4,1.5) {};
+  \node[tip] (D) at (3.4,0.5) {};
+
+  % Labels
+  \node[accentred,anchor=east] at (A.west) {taxon A};
+  \node[accentred,anchor=east] at (B.west) {taxon B};
+  \node[accentred,anchor=west] at (C.east) {taxon C};
+  \node[accentred,anchor=west] at (D.east) {taxon D};
+
+  % Internal junctions for two alternative splits
+  \coordinate (L1) at (0.8,1.0);
+  \coordinate (R1) at (2.6,1.0);
+  \coordinate (L2) at (0.8,1.8);
+  \coordinate (R2) at (2.6,0.2);
+
+  % Split 1: (A,B)|(C,D)
+  \draw[treegray,thick]
+    (A) -- (L1)
+    (B) -- (L1)
+    (C) -- (R1)
+    (D) -- (R1)
+    (L1) -- (R1);
+
+  % Split 2: (A,D)|(B,C) forming the box
+  \draw[accentorange,thick,dashed]
+    (A) -- (L2) -- (R2) -- (D) -- cycle;
+
+  % Annotation
+  \node[rug-red,anchor=south west,font=\sffamily\footnotesize] at (0.5,2.05)
+    {Conflicting splits};
+  \node[treegray,anchor=north,font=\sffamily\scriptsize] at (1.7,-0.2)
+    {split network (data conflict as boxes)};
+
+  \end{tikzpicture}
+  \caption{Toy split network for four taxa. Two incompatible splits form a ``box'', illustrating conflicting phylogenetic signal that cannot be represented on a single bifurcating tree.}
+  \label{fig::intro::split-net}
+\end{figure}

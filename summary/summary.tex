@@ -1,0 +1,45 @@
+\chapter*{Summary}
+\addcontentsline{toc}{chapter}{Summary}
+\setheader{Summary}
+
+\dropcap{T}his thesis investigates the drivers of species diversification, and to what extent deep learning methods can recover different drivers from extant phylogenies. In particular, I focus on the effects of ecological limits (constraints to the numbers of species that can coexist) and evolutionary relatedness on speciation and extinction rates. 
+First, I introduce a birth--death model, \texttt{eve}, in which speciation rates depend on both species richness and evolutionary relatedness (ER) measured at different phylogenetic scales. 
+I show that tree shape and the distribution of speciation rates across lineages depend strongly on the scale at which ER acts, and that negative species richness dependence can partly mask the influence of ER on standard tree statistics. The model generates a wide range of empirically realistic, often imbalanced, phylogenies.
+
+Second, I develop an ensemble neural-network framework for parameter estimation in diversification models. 
+Combining dense, graph and recurrent neural networks trained on tree topologies, branching times and summary statistics, the method yields estimates faster than maximum-likelihood approaches and is less sensitive to tree size for constant-rate and diversity-dependent models. However, both likelihood-based and neural network estimators struggle under protracted speciation, highlighting limits imposed by the information content of trees.
+
+Third, I use the \texttt{eve} model---which couples ecological limits with ER effects on speciation and extinction---as a testbed to map when neural networks can and cannot infer diversification mechanisms from phylogenies. 
+In many cases the neural networks struggle to tell the three scenarios apart, and when the trees carry little information the estimated parameters tend to drift back toward average values. Strong global richness dependence further erodes recoverability, whereas sufficiently strong ER effects can create narrow regions of practical identifiability. Together, these results delineate the prospects and limits of using flexible diversification models and deep learning to unravel evolutionary dynamics from extant phylogenies.
+
+\chapter*{Samenvatting}
+\addcontentsline{toc}{chapter}{Samenvatting}
+\setheader{Samenvatting}
+
+{\selectlanguage{dutch}
+
+\dropcap{I}n dit proefschrift onderzoek ik welke krachten soorten\-diversificatie sturen en in hoeverre deep-learningmethoden verschillende drijvers kunnen terugvinden uit fylogenieën van nog levende soorten. Daarbij richt ik mij vooral op het effect van ecologische grenzen (beperkingen aan het aantal soorten dat kan samenleven) en evolutionaire verwantschap op soortvormings- en uitstervingssnelheden.
+Allereerst introduceer ik een geboorte--sterftemodel, \texttt{eve}, waarin soortvormingssnelheden afhangen van zowel soortrijkdom als evolutionaire verwantschap (ER), gemeten op verschillende fylogenetische schalen.
+Ik laat zien dat de boomvorm en de verdeling van soortvormingssnelheden over lijnen sterk afhangen van de schaal waarop ER werkt, en dat negatieve afhankelijkheid van soortrijkdom de invloed van ER op standaard boomstatistieken deels kan maskeren. Het model genereert een breed scala aan empirisch realistische, vaak ongebalanceerde fylogenieën.
+
+Vervolgens ontwikkel ik een ensemble-benadering met neurale netwerken voor parameterschatting in diversificatiemodellen.
+Door dichte, grafische en recurrente neurale netwerken te combineren---getraind op boomtopologieën, vertakkingstijden en samenvattende statistieken---verkrijgt deze methode schattingen sneller dan maximum-likelihoodmethoden en is zij minder gevoelig voor boomgrootte bij constant-rate en diversiteitsafhankelijke modellen. Zowel likelihood-gebaseerde als neurale schatters hebben echter moeite met geprotraheerde soortvorming, wat de grenzen laat zien die worden opgelegd door de informatie-inhoud van fylogenieën.
+
+Ten slotte gebruik ik het \texttt{eve}-model---dat ecologische grenzen koppelt aan ER-effecten op soortvorming en uitsterven---als testomgeving om in kaart te brengen wanneer neurale netwerken diversificatiemechanismen wel of niet kunnen achterhalen.
+In veel gevallen hebben de neurale netwerken moeite om de drie scenario's uit elkaar te houden, en wanneer de bomen weinig informatie bevatten schuiven de geschatte parameters terug richting gemiddelde waarden. Sterke globale afhankelijkheid van soortrijkdom vermindert de herleidbaarheid verder, terwijl voldoende sterke ER-effecten smalle gebieden van praktische identificeerbaarheid kunnen creëren. Gezamenlijk schetsen deze resultaten de mogelijkheden en beperkingen van het gebruik van flexibele diversificatiemodellen en deep learning om evolutionaire dynamiek uit fylogenieën van nog levende soorten te ontrafelen.
+
+}
+
+\chapter*{摘要}
+\addcontentsline{toc}{chapter}{摘要}
+\setheader{摘要}
+
+{\setlength{\parindent}{2em}
+\noindent\dropcap{本}论文研究物种分化（由物种的形成与灭绝共同决定的过程）的驱动因素，并探讨深度学习方法是否能够仅凭现存物种的系统发育树识别这些驱动机制。论文重点关注两类影响：生态容量/生态限制（即能够共存的物种数量上限），以及物种之间的进化亲缘关系（evolutionary relatedness, ER）对物种形成与灭绝速率的效应。
+
+首先，本文提出一个新的出生--死亡模型 \texttt{eve}。在该模型中，物种分化过程同时受到物种丰富度与进化亲缘关系（ER）的影响，并允许 ER 在不同系统发育尺度上起作用。研究表明，ER 的作用尺度会显著改变系统发育树的结构，并影响物种分化速率在谱系间的分布；同时，较强的负向丰富度依赖会在一定程度上掩盖 ER 在常用树统计量中留下的痕迹。该模型能够生成多样且与经验数据更贴近、往往高度不平衡的系统发育树。
+
+其次，本文提出一个用于物种分化模型参数估计的集成学习框架。该框架联合使用全连接神经网络、图神经网络与循环神经网络，能够同时利用系统发育树的拓扑结构、分枝时间与汇总统计量。在应用于多种经典模型时，该方法相较最大似然估计更快，并且其估计精度对树规模的敏感性更低。然而，在“延迟物种形成”模型下，无论是最大似然方法还是神经网络方法都难以精确复原参数。这表明模型参数的可推断性往往受限于系统发育树本身所携带的信息量。
+
+最后，本文以 \texttt{eve} 模型为检验平台，系统性评估神经网络在何种条件下能够从系统发育树中准确推断物种分化机制。结果显示，在许多情况下，神经网络难以准确区分 \texttt{eve} 模型对应的三类机制情景；当系统发育树所包含的信息量较低时，参数估计往往会回到“平均值”附近。较强的全局丰富度依赖效应会进一步削弱参数与情景的可推断性，而足够强的 ER 效应则可能在参数空间中形成狭窄但可有效识别的区域。综上所述，本论文系统讨论了深度学习框架用于物种分化模型参数估计时的表现、限制与应用前景。
+}

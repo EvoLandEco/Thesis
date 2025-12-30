@@ -1,0 +1,51 @@
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    >=Stealth,
+    x=1cm,
+    y=1cm
+  ]
+
+  % Left panel: constant-rate BD with extinction
+  \begin{scope}
+    % axes
+    \draw[treegray,->] (0,0) -- (4,0) node[anchor=west] {\scriptsize time};
+    \draw[treegray,->] (0,0) -- (0,3) node[anchor=south] {\scriptsize $\log$(lineages)};
+
+    % log N(t) = a + r0 * t + b * t^3
+    \draw[accentorange,thick,smooth,domain=0.2:3.5,samples=200]
+      plot (\x,{0.6 + 0.15*\x + 0.018*pow(\x,3)});
+
+    % label
+    \node[gray,anchor=west,yshift=4] at (1.0,2.0)
+      {\scriptsize constant-rate BD with extinction};
+    \node[rug-red,font=\sffamily\bfseries\footnotesize,anchor=west,yshift=15] at (0,3.15)
+      {Pull of the present};
+  \end{scope}
+
+  % Right panel: diversity-dependent BD (logistic N(t)) on log scale
+  \begin{scope}[xshift=6cm]
+    % axes
+    \draw[treegray,->] (0,0) -- (4,0) node[anchor=west] {\scriptsize time};
+    \draw[treegray,->] (0,0) -- (0,3) node[anchor=south] {\scriptsize $\log$(lineages)};
+
+    % carrying capacity line
+    \draw[treegray,dashed] (0.2,2.3) -- (3.8,2.3);
+    \node[treegray,anchor=west] at (3.85,2.3) {\scriptsize $\log K$};
+
+    % decelerating log-LTT
+    \draw[accentred,thick,smooth,domain=0.2:3.5,samples=200]
+      plot (\x,{2.3 - ln(1 + 7*exp(-1.0*\x))});
+
+    % label
+    \node[gray,anchor=west,yshift=-2] at (1.0,1.0)
+      {\scriptsize diversity-dependent slowdown};
+
+    \node[rug-red,font=\sffamily\bfseries\footnotesize,anchor=west,yshift=15] at (0,3.15)
+      {Diversity-dependent birth--death};
+  \end{scope}
+
+  \end{tikzpicture}
+  \caption{Lineage-through-time (LTT) plots. \textbf{Left}: approximate expected log LTT under a constant-rate birth--death model with extinction, where the slope increases from the net diversification rate $\lambda-\mu$ early on toward the speciation rate $\lambda$ near the present, illustrating the pull of the present. \textbf{Right}: diversity-dependent model with carrying capacity $K$, where the expected log LTT (red) gradually approaches $\log K$ (dashed line) as diversification slows down.}
+  \label{fig::intro::ltt}
+\end{figure}

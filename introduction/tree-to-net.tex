@@ -1,0 +1,83 @@
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.75cm,
+    tip/.style={anchor=west},
+    >=Stealth
+  ]
+
+  % Left panel: Tree
+  \node[rug-red,font=\sffamily\bfseries\footnotesize,anchor=west] (labTree) at (-0.4,2.6) {Tree};
+
+  % Backbone
+  \coordinate (r1) at (0,2);
+  \coordinate (a1) at (0.8,2);
+  \coordinate (b1) at (0.8,1.2);
+  \coordinate (c1) at (0.8,0.4);
+
+  \coordinate (a1tip) at (2.2,2.4);
+  \coordinate (b1tip) at (2.2,1.2);
+  \coordinate (c1tip) at (2.2,0.0);
+
+  \draw[treegray,thick]
+    (r1) -- ++(-0.5,0)  % root stem
+    (r1) -- (a1)
+    (r1) -- (b1)
+    (b1) -- (c1);
+
+  \draw[treegray,thick]
+    (a1) -- (a1tip)
+    (b1) -- (b1tip)
+    (c1) -- (c1tip);
+
+  \node[tip,accentred] at (a1tip) {species A};
+  \node[tip,accentred] at (b1tip) {species B};
+  \node[tip,accentred] at (c1tip) {species C};
+
+  % Axis arrow
+  \draw[treegray,->,line width=0.4pt, yshift=-5] (-0.5,-0.2) -- (2.4,-0.2);
+  \node[treegray,anchor=north,font=\sffamily\scriptsize, yshift=-5] at (1.0,-0.2)
+    {divergence (tree-like)};
+
+  % Right panel: Network
+  \begin{scope}[xshift=6.0cm]
+    \node[rug-red,font=\sffamily\bfseries\footnotesize,anchor=west] (labNet) at (-0.4,2.6) {Network};
+
+    % Backbone tree
+    \coordinate (r2) at (0,2);
+    \coordinate (a2) at (0.8,2);
+    \coordinate (b2) at (0.8,1.2);
+    \coordinate (c2) at (0.8,0.4);
+
+    \coordinate (a2tip) at (2.2,2.4);
+    \coordinate (b2tip) at (2.2,1.2);
+    \coordinate (c2tip) at (2.2,0.0);
+
+    \draw[treegray,thick]
+      (r2) -- ++(-0.5,0)
+      (r2) -- (a2)
+      (r2) -- (b2)
+      (b2) -- (c2);
+
+    \draw[treegray,thick]
+      (a2) -- (a2tip)
+      (b2) -- (b2tip)
+      (c2) -- (c2tip);
+
+    % Reticulation edge from A lineage into C lineage
+    \draw[dashed,accentorange,thick,->]
+      (1.4,2.2) .. controls (1.8,1.9) and (1.8,0.8) .. (1.4,0.4);
+
+    % Tips
+    \node[tip,accentred] at (a2tip) {species A};
+    \node[tip,accentred] at (b2tip) {species B};
+    \node[tip,accentred] at (c2tip) {species C};
+
+    \node[accentorange,anchor=west,font=\sffamily\scriptsize, yshift=15] at (1.9,1.2)
+      {gene flow / hybridization};
+  \end{scope}
+
+  \end{tikzpicture}
+  \caption{From a strictly bifurcating tree (\textbf{left}) to a simple phylogenetic network (\textbf{right}) with a reticulation event connecting two lineages.}
+  \label{fig::intro::tree-vs-network}
+\end{figure}

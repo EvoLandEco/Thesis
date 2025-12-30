@@ -1,0 +1,289 @@
+\chapter*{Curriculum Vit\ae}
+\addcontentsline{toc}{chapter}{Curriculum Vit\ae}
+\setheader{Curriculum Vit\ae}
+
+\hypersetup{
+  linkcolor={rug-red},
+  citecolor={rug-red},
+  urlcolor={rug-red}
+}
+
+% ---------------------------------------------------------
+% Custom commands
+% ---------------------------------------------------------
+\newcommand{\name}{Tianjian Qin}
+\newcommand{\headline}{Theoretical Biologist \& Infectious Disease Modeler}
+
+% Fancy bullet for itemize
+\newlist{fancyitem}{itemize}{1}
+\setlist[fancyitem]{
+  label=\raisebox{0.1ex}{\small\color{rug-red}\faIcon{angle-right}},
+  leftmargin=2.2em,
+  itemsep=2pt,
+  topsep=4pt
+}
+
+% Fancy bullets for experience sections
+\newlist{expitem}{itemize}{1}
+\setlist[expitem]{
+  label=\raisebox{0.1ex}{\small\color{rug-red}\faIcon{angle-right}},
+  leftmargin=1.0em,
+  itemsep=3pt,
+  topsep=3pt,
+  font=\normalsize
+}
+
+% Section style
+\titleformat{\section}
+  {\large\bfseries}
+  {}{0pt}{\sectionbar\color{rug-red}}
+
+\titlespacing*{\section}{0pt}{1.4em}{0.8em}
+
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{rug-red}}
+  {}{0pt}{}
+\titlespacing*{\subsection}{0pt}{1.0em}{0.3em}
+
+% A simple CV entry macro
+% A slightly more spacious and styled CV entry
+\newcommand{\cventry}[4]{%
+  \noindent
+  \textbf{#1}%
+  \hfill
+  {\color{rug-red}\itshape #2}\\[0.25em]%
+  {\small\textit{#3}}\\[0.45em]%
+  #4%
+  \par\vspace{0.9em}%
+}
+
+% Compact itemize
+\setlist[itemize]{leftmargin=1.5em, topsep=2pt, itemsep=2pt}
+
+\newcommand{\sectionbar}{%
+  \color{rug-red}\rule[-0.3ex]{2mm}{2.1ex}\hspace{0.7em}%
+}
+
+% ---------------------------------------------------------
+% Header
+% ---------------------------------------------------------
+\begin{center}
+  {\huge\bfseries \name}\\[0.3em]
+\end{center}
+
+\vspace{0.5em}
+
+% ---------------------------------------------------------
+% Research Profile
+% ---------------------------------------------------------
+\section*{Research Profile}
+
+Theoretical biologist specializing in data-driven mathematical modeling of complex biological and epidemiological systems. My work combines stochastic processes, phylogenetic and phylodynamic methods, graph and network theory, and cutting-edge AI technologies to study diversification and infectious disease dynamics.
+
+I am increasingly focused on infectious disease epidemiology in animal populations, leveraging:
+\begin{fancyitem}
+  \item \textbf{Machine learning and deep learning}
+        for pattern discovery, prediction, and model comparison;
+  \item \textbf{Stochastic birth--death models}
+        for diversification and epidemic dynamics;
+  \item \textbf{Network- and graph-based models}
+        for contact and movement structures;
+  \item \textbf{Bioinformatics and geographic information systems}
+        to link sequence, spatial, and epidemiological data;
+  \item \textbf{High-performance computing and big-data frameworks}
+        for large-scale simulations and inference;
+  \item \textbf{Open, reproducible software and interactive web applications}
+        to support research, policy, and teaching.
+\end{fancyitem}
+
+% ---------------------------------------------------------
+% Research Interests
+% ---------------------------------------------------------
+\section*{Research Interests}
+
+\begin{multicols}{2}
+\begin{fancyitem}
+  \item Contact and livestock trade networks; digital-twins of animal movement systems
+  \item Stochastic epidemic and diversification processes
+  \item Statistics and visualizations on dynamic networks and phylogenetic trees/networks
+  \item Bayesian and likelihood-free inference; model identifiability
+  \item AI augumented infectious disease modeling
+  \item Open science, reproducible pipelines, and interactive teaching tools
+\end{fancyitem}
+\end{multicols}
+
+% ---------------------------------------------------------
+% Education
+% ---------------------------------------------------------
+\section*{Education}
+
+\cventry
+  {PhD in Evolutionary Life Sciences (Theoretical Biology)}
+  {2019 -- present}
+  {University of Groningen, Groningen Institute for Evolutionary Life Sciences (GELIFES), Netherlands}
+  {%
+    \textbf{Supervisors:} \textit{Prof.\ Dr.\ Rampal Etienne, Dr.\ Luis Valente \& Dr.\ Koen van Benthem}\\[0.35em]
+    Research on stochastic diversification processes and neural network--based inference from phylogenetic trees. Development of the EVE model (evolutionary relatedness--dependent diversification) and simulation/inference pipelines in R, C++, and Python.
+  }
+
+\cventry
+  {MSc in Ecology (Wetland Ecology and Invasion Biology)}
+  {2016 -- 2019}
+  {Beijing Forestry University, School of Nature Conservation, China}
+  {%
+    \textbf{Supervisors:} \textit{Prof.\ Dr.\ Hongli Li, Prof. Dr.\ Feihai Yu}\\[0.35em]
+    Field and experimental work on wetland plant communities and biological invasions. Combined phylogenetic diversity metrics, community composition, and trait data to investigate resistance to invasion by \emph{Alternanthera philoxeroides} and other invasive species.
+  }
+
+\cventry
+  {BSc in Marine Biology}
+  {2012 -- 2016}
+  {Nanjing Normal University, School of Life Sciences, China}
+  {%
+    Broad foundation in ecology and evolution, with emphasis on marine biodiversity, fieldwork, quantitative ecology, and programming.
+  }
+  
+% ---------------------------------------------------------
+% Academic and Research Experience
+% ---------------------------------------------------------
+\section*{Academic and Research Experience}
+
+\cventry
+  {Post-Doctoral Researcher  -- Infectious Disease Modeling}
+  {Ongoing}
+  {Wageningen University \& Research, Netherlands}
+  {%
+   \begin{expitem}
+     \item Developing network-based models and non-parametric samplers of livestock trade and contact networks to construct digital twins of animal movement systems for disease-spread simulation and policy-making.
+     \item Applying spectral graph theory, stochastic processes, and other mathematical tools to reveal complex temporal network structures.
+     \item Developing neural network approaches for modeling spatial point patterns of the farms of the Netherlands.
+     \item Developing \texttt{Transformer}-based approaches for dynamic livestock trade network contact prediction.
+     \item Developing a \texttt{Python} library for advanced dynamic network statistics and visualizations.
+     \item Developing \texttt{HerdLink}, an interactive web-based application for exploring and assessing the livestock trade networks of the Netherlands.
+     \item Developing \texttt{R} package \texttt{HandelR}, an automated scheduler for managing research data and running scripts to support open science and reproducible research.
+     \item Exploring integration of phylogenetic/diversification tools with phylodynamic thinking for zoonotic and livestock-associated pathogens.
+   \end{expitem}
+  }
+
+\cventry
+  {Doctoral Researcher -- Theoretical \& Computational Biology}
+  {2019 -- present}
+  {University of Groningen, Netherlands}
+  {%
+   \begin{expitem}
+     \item Traveled to 43 countries, gaining first-hand experience of diverse ecosystems and cultures.
+     \item Developed stochastic birth--death models (\texttt{EVE}) to investigate how evolutionary relatedness shapes speciation and extinction at multiple phylogenetic scales.
+     \item Developed novel statistics, simulation algorithms and visualization tools for time--varying stochastic branching processes.
+     \item Implemented high-performance simulation pipelines in \texttt{R}, \texttt{C++} and \texttt{Python}, generating large ensembles of phylogenetic trees under complex diversification scenarios.
+     \item Designed neural network inference frameworks (\texttt{EvoNN}) for parameter estimation and scenario classification from phylogenetic trees.
+     \item Applied approximate Bayesian computation, likelihood-based methods, and deep learning to assess identifiability, redundancy and robustness of diversification models.
+     \item Extensive experience working on supercomputers and in \texttt{Unix/Linux} shell scripting.
+     \item Emphasized open science: released simulation tools as open-source software with thorough documentation and reproducible workflows.
+     \item Collaborated on the \texttt{C++} based \texttt{R} package \texttt{treestats} for efficient computing of summary statistics on phylogenies.
+     \item Collaborated on the \texttt{R} package \texttt{DDD} (Diversity-Dependent Diversification) for implementing reliable maximum-likelihood estimation optimizers.
+     \item Collaborated on the \textit{Brassicaceae} Tree of Life project and developed \texttt{JavaScript}-based phylogenetic manipulation tool \texttt{miniape}.
+   \end{expitem}
+  }
+
+\cventry
+  {Researcher in Ecology \& Invasion Biology (MSc)}
+  {2016 -- 2019}
+  {Beijing Forestry University, China}
+  {%
+   \begin{expitem}
+     \item Conducted extensive field surveys across 18 provinces in China to quantify wetland plant communities and invasion patterns.
+     \item Developed experience with GIS tools by modeling invasive species occurrences at country scale.
+     \item Established automated pipelines of leaf image analysis and phylogenetic tree reconstruction for the research group. 
+     \item Analyzed how phylogenetic diversity and species richness affect community resistance to invasion along latitudinal gradient.
+     \item Performed greenhouse experiments manipulating artificial plant communities to study functional and phylogenetic interactions among native species and \emph{A.~philoxeroides}.
+   \end{expitem}
+  }
+
+\section*{Grants, Scholarships, and Awards}
+\subsection*{Grants}
+\begin{expitem}
+\item \textbf{Implementatie-impuls COVID-19 programma (ZonMw)} (Mar 2026 -- Dec 2026)\\
+      Co-applicant. Project: \emph{SSS-mod Paraatheidspakket bij toekomstige respiratoire uitbraken}.
+  \item \textbf{Small Compute Applications (NWO)} (2025 -- 2026)\\
+        Received to support high-performance computing for data-intensive modeling work.
+\end{expitem}
+\subsection*{Scholarships}
+\begin{expitem}
+  \item \textbf{CSC--RUG Joint Scholarship} (2019 -- 2023)\\
+        Competitive scholarship to support PhD research in theoretical biology.
+  \item \textbf{First-Class Academic Performance Scholarship (Graduate)} (2018 -- 2019)\\
+        In recognition of outstanding performance within the graduate cohort.
+  \item \textbf{First-Class Academic Performance Scholarship (Graduate)} (2017 -- 2018)\\
+        In recognition of outstanding performance within the graduate cohort.
+\end{expitem}
+\subsection*{Awards}
+\begin{expitem}
+  \item \textbf{Denise Kirschner Best Student Paper Prize}, Journal of Theoretical Biology (2025)\\
+        Inaugural best graduate student paper prize for: Qin, T., Valente, L., \& Etienne, R.S. (2025).
+  \item \textbf{Graduate Academic Innovation Award}, Beijing Forestry University (2018)\\
+        Awarded for innovative graduate research.
+\end{expitem}
+
+% ---------------------------------------------------------
+% Professional Skills
+% ---------------------------------------------------------
+\section*{Professional Skills}
+
+\subsection*{Quantitative and Modeling Skills}
+
+\begin{expitem}
+  \item Stochastic birth--death and branching processes.
+  \item Network and graph-based modeling.
+  \item Machine learning and deep learning.
+  \item Approximate Bayesian computation, likelihood-based inference, Markov chain Monte Carlo.
+  \item Phylogenetic and phylodynamic analysis; tree and network statistics.
+  \item Geospatial analysis and statistics; spatial point pattern modeling.
+\end{expitem}
+
+\subsection*{Programming and Technical Skills}
+
+\begin{expitem}
+  \item \textbf{R}: package development, simulation, data analysis, visualization.
+  \item \textbf{C/C++}: high-performance simulation engines, R/Python integration.
+  \item \textbf{Python}: ML pipelines, automation scripts, graph/network analysis.
+  \item \textbf{Web}: HTML, CSS, JavaScript, D3.js for interactive teaching and outreach tools.
+  \item \textbf{HPC \& Linux}: Environment configuration, bash scripting, job scheduling, pipeline automation.
+  \item \textbf{Git \& CI/CD}: Git/GitLab workflows, GitHub Actions for automated testing and pipelines.
+  \item \textbf{Server}: deploying and maintaining websites and online game servers on cloud-based Linux servers.
+  \item \LaTeX\ and visualization tools (TikZ, PGFPlots) for scientific writing and figures.
+\end{expitem}
+
+% ---------------------------------------------------------
+% International and Interdisciplinary Experience
+% ---------------------------------------------------------
+\section*{International and Interdisciplinary Experience}
+
+\begin{expitem}
+  \item Fieldwork across multiple provinces in China during MSc training, including wetland biodiversity and invasion surveys.
+  \item Research and collaboration experience at the interface of ecology, evolution, statistics, and computer science.
+  \item Comfortable working in multicultural academic environments and interdisciplinary teams.
+\end{expitem}
+
+% ---------------------------------------------------------
+% Languages
+% ---------------------------------------------------------
+\section*{Languages}
+
+\begin{expitem}
+  \item \textbf{Chinese}: native
+  \item \textbf{English}: proficient (IELTS Certificate C1, 2019).
+  \item \textbf{Dutch}: intermediate (DUO \emph{inburgeringsdiploma} A2, 2025).
+  \item \textbf{German}: reading and basic communication (Summer Camp A2.2, 2013).
+\end{expitem}
+
+% ---------------------------------------------------------
+% Personal Interests
+% ---------------------------------------------------------
+\section*{Personal Interests}
+
+\begin{expitem}
+  \item Photography and digital storytelling.
+  \item Travel and cultural exploration.
+  \item Continuous learning at the interface of biology, mathematics, and computer science.
+\end{expitem}
+

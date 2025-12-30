@@ -1,0 +1,256 @@
+\begin{tikzpicture}
+\tikzstyle{connection}=[ultra thick,every node/.style={sloped,allow upside down},draw=\edgecolor,opacity=0.7]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Draw Boosting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% GNN data
+\node[canvas is zy plane at x=0] (graphs) at (-2,4,0) {\includegraphics[width=3cm,height=3cm]{graphs.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(graphs.south east)+(10pt,-10pt)$) rectangle ($(graphs.north west)+(-10pt,10pt)$);
+
+% GNN module
+\pic[shift={(0,0,0)}] at (0,4,0) {RightBandedBox={name=gnn,caption=GNN,%
+        xlabel={{"","",""}},zlabel=,fill=\ConvPoolColor,bandfill=\ConvGeLUColor,%
+        height=20,width={5,5,5},depth=15}};
+
+% GNN readout
+\pic[shift={(1.5,0,0)}] at (gnn-east) {Box={name=gnnread,caption=readout,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=20,width=1,depth=15}};
+        
+%% GNN output
+\pic[shift={(3,0,0)}] at (gnn-east) {Box={name=gnnout,caption=pred0,%
+        fill=\OutColor,%
+        height=20,width=1,depth=15}}; 
+
+%% DNN data
+\node[canvas is yz plane at x=0, rotate = -90] (stats) at (10,4,0) {\includegraphics[width=3.3cm,height=3.3cm]{stats.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(stats.south east)+(0pt,0pt)$) rectangle ($(stats.north west)+(10pt,10pt)$);
+
+% DNN module
+\pic[shift={(5.7,0,0)}] at (gnnout-east) {RightBandedBox={name=dnn,caption=DNN,%
+        xlabel={{"","","","",""}},zlabel=,fill=\LinearColor,bandfill=\ConvGeLUColor,%
+        height=20,width={3,3,3,3,3},depth=15}};
+
+% DNN readout
+\pic[shift={(1.5,0,0)}] at (dnn-east) {Box={name=dnnread,caption=readout,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=20,width=1,depth=15}};
+        
+%% DNN output
+\pic[shift={(3,0,0)}] at (dnn-east) {Box={name=dnnout,caption=pred-res1,%
+        fill=\OutColor,%
+        height=20,width=1,depth=15}}; 
+
+%% LSTM data
+\node[canvas is yz plane at x=0, rotate = -90] (brts) at (22,4,0) {\includegraphics[width=3.3cm,height=3.3cm]{brts.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(brts.south east)+(0pt,0pt)$) rectangle ($(brts.north west)+(10pt,10pt)$);
+
+% LSTM module
+\pic[shift={(5.7,0,0)}] at (dnnout-east) {Box={name=lstm,caption=LSTM,%
+        xlabel={{"","","","",""}},zlabel=,fill=\LSTMColor,%
+        height=20,width={3,3,3,3,3},depth=15,opacity=0.1}};
+
+% LSTM readout
+\pic[shift={(1.5,0,0)}] at (lstm-east) {Box={name=lstmread,caption=readout,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=20,width=1,depth=15}};
+        
+%% LSTM output
+\pic[shift={(3,0,0)}] at (lstm-east) {Box={name=lstmout,caption=pred-res2,%
+        fill=\OutColor,%
+        height=20,width=1,depth=15}}; 
+
+%% Residual 1
+\pic[shift={(-7.5,0,15)}] at (dnnout-near) {Box={name=res1,caption=res1,%
+        fill=\ResidualColor,%
+        height=20,width=1,depth=15, opacity=0.1}}; 
+
+%% Residual 2
+\pic[shift={(4.5,0,15)}] at (dnnout-near) {Box={name=res2,caption=res2,%
+        fill=\ResidualColor,%
+        height=20,width=1,depth=15, opacity=0.1}}; 
+
+%% Summing up
+\pic[shift={(0,2,0)}] at (dnnout-north) {Ball={name=sum,%
+fill=\MeanColor,opacity=0.6,%
+radius=2.5,logo=$S$}};
+
+%% Final output
+\pic[shift={(-0.13,4,0)}] at (sum-north) {Box={name=finalout,caption=pred,%
+        fill=\FinalColor,%
+        height=20,width=1,depth=15}}; 
+
+        
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Draw connections
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\draw [connection]  (gnn-east) -- node {\midarrow} (gnnread-west);
+\draw [connection]  (gnnread-east) -- node {\midarrow} (gnnout-west);
+\draw [connection]  (dnn-east) -- node {\midarrow} (dnnread-west);
+\draw [connection]  (dnnread-east) -- node {\midarrow} (dnnout-west);
+\draw [connection]  (lstm-east) -- node {\midarrow} (lstmread-west);
+\draw [connection]  (lstmread-east) -- node {\midarrow} (lstmout-west);
+
+% pred0 to res1 to dnn
+\path (gnnout-near) -- (dnnout-near) coordinate[pos=0] (after1) ;
+\draw (dnnout-near)++(-4.5,0,15) coordinate (dnnh);
+\draw [connection]  (after1)    -- node {\midarrow} ++(0,0,15) -- node {\midarrow} (res1-west);
+\draw [connection]  (res1-east) -- node{\midarrow} (dnnh) -- node{\midarrow}(dnn-near);
+
+% pred1 to res2 to lstm
+\path (dnnout-near) -- (lstmout-near) coordinate[pos=0] (after2) ;
+\draw (lstmout-near)++(-4.5,0,15) coordinate (lstmh);
+\draw [connection]  (after2)    -- node {\midarrow} ++(0,0,15) -- node {\midarrow} (res2-west);
+\draw [connection]  (res2-east) -- node{\midarrow} (lstmh) -- node{\midarrow}(lstm-near);
+
+% pred0, res1 and res2 to sum
+\draw [connection] (gnnout-north) -- node {\midarrow} ++ (0,2,0) -- node {\midarrow} (sum-west) ;
+\draw [connection] (dnnout-north) -- node {\midarrow} (sum-south);
+\draw [connection] (lstmout-north) -- node {\midarrow} ++ (0,2,0) -- node {\midarrow} (sum-east);
+
+% sum to final output
+\draw [connection] (sum-north) -- node {\midarrow} (finalout-south);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Draw Bagging
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% GNN data
+\node[canvas is zy plane at x=0] (graphs2) at (-2,-11,0) {\includegraphics[width=3cm,height=3cm]{graphs.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(graphs2.south east)+(10pt,-10pt)$) rectangle ($(graphs2.north west)+(-10pt,10pt)$);
+
+% GNN module
+\pic[shift={(0,0,0)}] at (0,-11,0) {RightBandedBox={name=gnn2,caption=GNN,%
+        xlabel={{"","",""}},zlabel=,fill=\ConvPoolColor,bandfill=\ConvGeLUColor,%
+        height=20,width={5,5,5},depth=15}};
+
+% GNN readout
+\pic[shift={(1.5,0,0)}] at (gnn2-east) {Box={name=gnn2read,caption=readout,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=20,width=1,depth=15}};
+
+%% GNN output
+\pic[shift={(3,0,0)}] at (gnn2-east) {Box={name=gnn2out,caption=pred,%
+        fill=\OutColor,%
+        height=20,width=1,depth=15}}; 
+
+%% DNN data
+\node[canvas is yz plane at x=0, rotate = -90] (stats2) at (-2,-18,0) {\includegraphics[width=3.3cm,height=3.3cm]{stats.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(stats2.south east)+(0pt,0pt)$) rectangle ($(stats2.north west)+(10pt,10pt)$);
+
+% DNN module
+\pic[shift={(0,0,0)}] at (0,-18,0) {RightBandedBox={name=dnn2,caption=DNN,%
+        xlabel={{"","","","",""}},zlabel=,fill=\LinearColor,bandfill=\ConvGeLUColor,%
+        height=20,width={3,3,3,3,3},depth=15}};
+
+% DNN readout
+\pic[shift={(1.5,0,0)}] at (dnn2-east) {Box={name=dnn2read,caption=readout,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=20,width=1,depth=15}};
+
+%% DNN output
+\pic[shift={(3,0,0)}] at (dnn2-east) {Box={name=dnn2out,caption=pred,%
+        fill=\OutColor,%
+        height=20,width=1,depth=15}}; 
+
+%% LSTM data
+\node[canvas is yz plane at x=0, rotate = -90] (brts2) at (-2,-25,0) {\includegraphics[width=3.3cm,height=3.3cm]{brts.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(brts2.south east)+(0pt,0pt)$) rectangle ($(brts2.north west)+(10pt,10pt)$);
+
+% LSTM module
+\pic[shift={(0,0,0)}] at (0,-25,0) {Box={name=lstm2,caption=LSTM,%
+        xlabel={{"","","","",""}},zlabel=,fill=\LSTMColor,%
+        height=20,width={3,3,3,3,3},depth=15,opacity=0.1}};
+
+% LSTM readout
+\pic[shift={(1.5,0,0)}] at (lstm2-east) {Box={name=lstm2read,caption=readout,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=20,width=1,depth=15}};
+
+%% LSTM output
+\pic[shift={(3,0,0)}] at (lstm2-east) {Box={name=lstm2out,caption=pred,%
+        fill=\OutColor,%
+        height=20,width=1,depth=15}};        
+
+%% Aggregation
+\pic[shift={(3,0,0)}] at (dnn2out-east) {Ball={name=agg,%
+fill=\MeanColor,opacity=0.6,%
+radius=2.5,logo=$A$}};
+
+%% Final output
+\pic[shift={(2,0,0)}] at (agg-east) {Box={name=final2out,caption=pred,%
+        fill=\FinalColor,%
+        height=20,width=1,depth=15}};
+        
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Draw connections
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\draw [connection]  (gnn2-east) -- node {\midarrow} (gnn2read-west);
+\draw [connection]  (gnn2read-east) -- node {\midarrow} (gnn2out-west);
+\draw [connection]  (dnn2-east) -- node {\midarrow} (dnn2read-west);
+\draw [connection]  (dnn2read-east) -- node {\midarrow} (dnn2out-west);
+\draw [connection]  (lstm2-east) -- node {\midarrow} (lstm2read-west);
+\draw [connection]  (lstm2read-east) -- node {\midarrow} (lstm2out-west);
+\draw [connection]  (agg-east) -- node {\midarrow} (final2out-west);
+
+% gnn, dnn and lstm output to aggregation
+\draw [connection] (gnn2out-east) -- node {\midarrow} ++ (3,0,0) -- node {\midarrow} (agg-north) ;
+\draw [connection] (dnn2out-east) -- node {\midarrow} (agg-west);
+\draw [connection] (lstm2out-east) -- node {\midarrow} ++ (3,0,0) -- node {\midarrow} (agg-south);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Draw Stacking
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% GNN data
+\node[canvas is zy plane at x=0] (graphs3) at (18,-11,0) {\includegraphics[width=3cm,height=3cm]{graphs.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(graphs3.south east)+(10pt,-10pt)$) rectangle ($(graphs3.north west)+(-10pt,10pt)$);
+
+% GNN module
+\pic[shift={(0,0,0)}] at (20,-11,0) {RightBandedBox={name=gnn3,caption=GNN,%
+        xlabel={{"","",""}},zlabel=,fill=\ConvPoolColor,bandfill=\ConvGeLUColor,%
+        height=20,width={5,5,5},depth=15}};
+
+%% DNN data
+\node[canvas is yz plane at x=0, rotate = -90] (stats3) at (18,-18,0) {\includegraphics[width=3.3cm,height=3.3cm]{stats.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(stats3.south east)+(0pt,0pt)$) rectangle ($(stats3.north west)+(10pt,10pt)$);
+
+% DNN module
+\pic[shift={(0,0,0)}] at (20,-18,0) {RightBandedBox={name=dnn3,caption=DNN,%
+        xlabel={{"","","","",""}},zlabel=,fill=\LinearColor,bandfill=\ConvGeLUColor,%
+        height=20,width={3,3,3,3,3},depth=15}};
+
+%% LSTM data
+\node[canvas is yz plane at x=0, rotate = -90] (brts3) at (18,-25,0) {\includegraphics[width=3.3cm,height=3.3cm]{brts.png}};
+\draw[canvas is zy plane at x=0,dashed,gray,rounded corners=10pt] ($(brts3.south east)+(0pt,0pt)$) rectangle ($(brts3.north west)+(10pt,10pt)$);
+
+% LSTM module
+\pic[shift={(0,0,0)}] at (20,-25,0) {Box={name=lstm3,caption=LSTM,%
+        xlabel={{"","","","",""}},zlabel=,fill=\LSTMColor,%
+        height=20,width={3,3,3,3,3},depth=15,opacity=0.1}};
+
+% Meta learner
+\pic[shift={(3,0,0)}] at (dnn3-east) {Box={name=meta,caption=meta-learner,%
+        xlabel={{"","dummy"}},zlabel=,fill=\LinearColor,%
+        height=40,width=1,depth=15}};
+
+% Final output
+\pic[shift={(3,0,0)}] at (meta-east) {Box={name=final3out,caption=pred,%
+        xlabel={{"","dummy"}},zlabel=,fill=\FinalColor,%
+        height=20,width=1,depth=15}};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Draw connections
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\draw [connection]  (meta-east) -- node {\midarrow} (final3out-west);
+
+% gnn, dnn and lstm output to aggregation
+\draw [connection] (gnn3-east) -- node {\midarrow} ++ (3.09,0,0) -- node {\midarrow} (meta-north) ;
+\draw [connection] (dnn3-east) -- node {\midarrow} (meta-west);
+\draw [connection] (lstm3-east) -- node {\midarrow} ++ (3.09,0,0) -- node {\midarrow} (meta-south);
+
+%%%%%%%%% Titles %%%%%%%%%%
+\node[black, scale=2] at ($(stats.west)+(-11cm, 11.5cm)$) {Boosting};
+\node[black, scale=2] at ($(stats.west)+(-11cm, -10.5cm)$) {Bagging};
+\node[black, scale=2] at ($(stats.west)+(9cm, -10.5cm)$) {Stacking};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{tikzpicture}

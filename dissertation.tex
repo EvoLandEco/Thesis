@@ -1,0 +1,92 @@
+\documentclass{dissertation}
+%\documentclass[print]{dissertation}
+%\documentclass[print,draft]{dissertation}
+
+\hyphenation{}
+\newcommand{\sparkline}[1]{$\vcenter{\hbox{\includegraphics[scale=0.04]{#1}}}$}
+
+\makeglossaries
+
+\newcommand*{\origrightarrow}{}
+\let\oldarrow\textrightarrow
+\renewcommand*{\textrightarrow}{\fontfamily{cmr}\selectfont\origrightarrow}
+\loadglsentries[main]{glossary}
+
+\input{abbreviations}
+
+\begin{document}
+
+%% Specify the title and author of the thesis. This information will be used on
+%% the title page (in title/title.tex) and in the metadata of the final PDF.
+\title{Diversification Models and Neural Inference}
+\author{Tianjian}{Qin}
+
+%% Use Roman numerals for the page numbers of the title pages and table of
+%% contents.
+\frontmatter
+
+\include{title/title}
+
+
+%% The (optional) dedication can be used to thank someone or display a
+%% significant quotation.
+\dedication{\epigraph{To everyone who kept me going when the finish line felt far away.}{}}
+
+\tableofcontents
+
+\include{summary/summary}
+\include{acks/acks}
+
+%% Use Arabic numerals for the page numbers of the chapters.
+\mainmatter
+
+%% Turn on thumb indices.
+\thumbtrue
+
+%% Introduction and synthesis
+\include{introduction/introduction}
+
+%% Ch1
+\include{chapter1/chapter1}
+
+%% Ch2
+\include{chapter2/chapter2}
+
+%% Ch3
+\include{chapter3/chapter3}
+
+%% Conclusion
+\include{conclusion/conclusion}
+
+%% Use letters for the chapter numbers of the appendices.
+%\appendix
+
+%\include{appendix-a/appendix-a}
+
+%% Turn off thumb indices for unnumbered chapters.
+\thumbfalse
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\setheader{Bibliography}
+
+URLs in this thesis have been archived on Archive.org. Their link target in digital editions refers
+to this timestamped version.
+
+\bibliographystyle{unsrtnat}
+% argument is your BibTeX string definitions and bibliography database(s)
+\bibliography{dissertation}
+
+%% \chapter*{Glossary}
+
+\glsaddall
+\printglossary[type=\acronymtype,title={Glossary}]
+\addcontentsline{toc}{chapter}{Glossary}
+\setheader{Glossary}
+
+\include{cv/cv}
+\include{publications/publications}
+\include{ipa/ipadissertations_2018}
+
+\end{document}
+

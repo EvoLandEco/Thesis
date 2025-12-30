@@ -1,0 +1,68 @@
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      >=stealth,
+      node distance=1.2cm and 1.8cm,
+      every node/.style={font=\small},
+      neuron/.style={circle, draw, minimum size=10pt, inner sep=0pt},
+      layerlabel/.style={font=\footnotesize\sffamily}
+    ]
+
+    % Input layer
+    \foreach \i in {1,...,4} {
+      \node[neuron, fill=gray!10] (I-\i) at (0, {-(\i-1)*1.0}) {};
+    }
+    \node[layerlabel, above=0.2cm of I-1, rug-red] {input layer};
+
+    % Hidden layer
+    \foreach \i in {1,...,5} {
+      \node[neuron, fill=accentblue!10] (H-\i) at (2.3, {-(\i-1)*0.9+0.5}) {};
+    }
+    \node[layerlabel, above=0.2cm of H-1, rug-red] {hidden layer};
+
+    % Output layer
+    \foreach \i in {1,...,2} {
+      \node[neuron, fill=red!10] (O-\i) at (4.6, {-(\i-1)*1.0-0.8}) {};
+    }
+    \node[layerlabel, above=0.2cm of O-1, rug-red] {output layer};
+
+    % Loss node on the right
+    \node[draw, rounded corners, font=\footnotesize, color=accentorange!70]
+      (Loss)
+      at ($ (O-1)!0.5!(O-2) + (1.6cm,0) $)
+      {$\mathcal{L}$};
+
+    % Gradient flow: hidden to input
+    \foreach \i in {1,...,4} {
+      \foreach \j in {1,...,5} {
+        \draw[<-, dashed, thin, gray] (I-\i) -- (H-\j);
+      }
+    }
+
+    % Gradient flow: output to hidden
+    \foreach \i in {1,...,5} {
+      \foreach \j in {1,...,2} {
+        \draw[<-, dashed, thin, gray] (H-\i) -- (O-\j);
+      }
+    }
+
+    % Gradient flow: loss to outputs
+    \foreach \j in {1,...,2} {
+      \draw[<-, dashed, thin, gray] (O-\j) -- (Loss);
+    }
+
+    % Labels for inputs/outputs
+    \node[left=0.5cm of I-2] {$x_1,\dots,x_4$};
+    \node[right=0.3cm of Loss] {$\hat{y}_1,\hat{y}_2$};
+
+    % Legend arrow: gradient flow
+    \begin{scope}[shift={(-0.2,-3.7)}]
+      \draw[<-, dashed, thin, gray] (1,0) -- (2,0);
+      \node[font=\footnotesize, right=0.2cm, color=gray] at (2,0)
+        {gradient flow};
+    \end{scope}
+
+  \end{tikzpicture}
+  \caption{Training view of a simple multi-layer perceptron. Dashed gray arrows indicate the flow of gradients during backpropagation: the loss $\mathcal{L}$ is computed from the output predictions and then propagated backwards through the output, hidden, and input layers to update the network parameters.}
+  \label{fig::intro::mlp_backprop}
+\end{figure}

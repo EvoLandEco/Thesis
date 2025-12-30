@@ -1,0 +1,487 @@
+\chapter{Diversity, Evolutionary Relatedness, and Tree Shape}
+\label{chapter1}
+\blfootnote{{\color{rug-red} \faFile*[regular]}~~Qin, T., Valente, L.\textsuperscript{\dag}, \& Etienne, R.\textsuperscript{\dag} (2025).
+Impact of evolutionary relatedness on species diversification and tree shape.
+\emph{Journal of Theoretical Biology}~\cite{qin_impact_2025}. \textsuperscript{\dag} indicates joint senior authors.\\
+{\color{rug-red} \faAward}~~Awarded the inaugural \emph{Denise Kirschner Best Student Paper Prize} (2025).}
+
+\dropcap{S}lowdowns in lineage accumulation are often observed in phylogenies of extant species. One explanation is the presence of ecological limits to diversity and hence to diversification. Previous research has examined whether and how species richness (\acrshort{sr}) impacts diversification rates, but rarely considered the evolutionary relatedness (\acrshort{er}) between species, although \acrshort{er} can affect the degree of interaction between species, which likely sets these limits. To understand the influences of \acrshort{er} on species diversification and the interplay between \acrshort{sr} and \acrshort{er}, we present a simple birth-death model in which the speciation rate depends on the \acrshort{er}. We use different metrics of ER that operate at different scales, ranging from branch/lineage-specific to clade-wide scales. We find that the scales at which an effect of \acrshort{er} operates yield distinct patterns in various tree statistics. When \acrshort{er} operates across the whole tree, we observe smaller and more balanced trees, with speciation rates distributed more evenly across the tips than in scenarios with lineage-specific \acrshort{er} effects. Importantly, we find that negative  dependence of speciation masks the impact of \acrshort{er} on some of the tree statistics. Our model allows diverse evolutionary trajectories for producing imbalanced trees, which are commonly observed in empirical phylogenies but have been challenging to replicate with earlier models.
+
+\clearpage
+{ % Constrain counter reset
+% Hacky command for displaying Appendix citations
+\renewcommand{\subsectionautorefname}{Appendix}
+\section{Introduction}
+\label{ch1::sec::intro}
+\dropcap{P}hylogenetic trees are important tools to estimate past processes that may explain the current species richness of clades, such as diversification rates. Over the last two decades, the increasing availability of DNA sequence data and of tools to reconstruct phylogenetic trees from these data has led to the development of birth-death models that use molecular phylogenies as a source of information to study diversification dynamics \citep{nee_tempo_1992,purvis_phylogenetic_2008,quental_diversity_2010,etienne_diversity-dependence_2012}. Lineage-through-time (LTT) plots, semi-logarithmic plots that track the number of lineages that have descendants at the present through time, are a powerful way of summarizing diversification dynamics. If per-lineage rates of speciation and extinction have been constant through time, the accumulation of lineages increases through time exponentially, with an even stronger increase close to the present, a phenomenon called the ‘pull-of-the-present’ \citep{nee_extinction_1994,kubo_inferring_1995}. However, a large number of empirical phylogenies display a different pattern: they often show recent deceleration \citep{purvis_phylogenetic_2008,phillimore_density-dependent_2008,moen_why_2014,aguilee_clade_2018}, which contrasts with findings from the fossil record \citep{etienne_diversity-dependence_2012,louca_why_2021}.
+
+Several hypotheses have been put forward to explain the observed slowdowns in phylogenies of extant species \citep{moen_why_2014}, such as time-dependent speciation rate \citep{moen_why_2014}, protracted speciation \citep{etienne_prolonging_2012} and negative diversity-dependent diversification \citep{valentine_evolutionary_1974,sepkoski_kinetic_1978,etienne_diversity-dependence_2012}. In negative diversity-dependent diversification models, the speciation rate declines with increasing species diversity (\acrshort{sr}). 
+
+Current models of diversity-dependent diversification assume that speciation rate depends on global \acrshort{sr}, regardless of evolutionary relationships of the species. The general underlying idea is that species diversification results in the occupation of available niche spaces, leaving limited opportunities for subsequent species to use those niches (\autoref{fig:figure1}), because evolving clades compete for finite ecological resources \citep{wiens_causes_2011}. In these models, \acrshort{sr} acts as a proxy for more mechanistic factors such as functional traits, niches and ecological interactions, which ultimately may influence ecological limits \citep{srivastava_phylogenetic_2012,kondratyeva_reconciling_2019}. While past ecological interactions between species are difficult to infer, useful proxies are evolutionary relatedness (\acrshort{er}) metrics, which quantify the phylogenetic distance between taxa. \acrshort{er} can represent the ecological roles of the species well \citep{helmus_phylogenetic_2007,pigot_quantifying_2016}, as closely related species are more likely to share trait states and ecological functions than distantly related species \citep{srivastava_phylogenetic_2012}, and evolutionary distance may be related to fitness and niche differences \citep{cadotte_phylogenetic_2012}, which in turn can affect speciation and extinction. Here, we may learn from insights from phylogenetic community ecology \citep{webb_phylogenies_2002, mayfield_opposing_2010, hillerislambers_rethinking_2012} and invasion biology. For example, alien species that are evolutionarily distant from those in the local community may have a greater chance of establishing \citep{zheng_species_2018}, so using \acrshort{er} as a proxy to quantify open niche spaces may explain the success of plant invaders \citep{henn_environmental_2019,qin_phylogenetic_2020}.
+
+The potentially powerful phylogenetic proxies for ecological interactions, however, have been the subject of intense debate because the underlying assumptions are often not robustly supported \citep{gerhold_phylogenetic_2015, pigot_quantifying_2016}. Indeed, there is mixed evidence regarding the effectiveness of these proxies. On the one hand, \citet{tucker_relationship_2018} concluded that phylogenetic diversity is a useful proxy for functional diversity, because phylogenetic diversity correlates more strongly with functional diversity when trait dimension increases (multidimensional trait space), although that correlation is weakened when trait evolution models become increasingly complex. On the other hand, \citet{mazel_prioritizing_2018} found that in many cases phylogenetic diversity only poorly captures functional diversity, even less so than random selection. Furthermore, \citet{venail_species_2015} found that trait and functional variation among species is largely explained by \acrshort{sr} but not phylogenetic relatedness (a concept similar to \acrshort{er}). Recently, \citet{pie_clade_2023} found that sympatry with closely-related species does not lead to decreasing speciation rates in a variety of vertebrate clades, implying that the underlying mechanisms of diversity-dependent diversification remain unconfirmed. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{chapter1/figure1D.png} % Relative width to the width of the main text
+    \caption{Illustration of how evolutionary relatedness (\acrshort{er}) is computed within clades and species in a phylogeny, as measured by three metrics: \acrshort{pd} (phylogenetic diversity), \acrshort{ed} (evolutionary distinctiveness), and \acrshort{nnd} (nearest neighbor distance). The tree on the left represents a phylogeny with extant and extinct (marked by tombstone icons) species. The numbered axis in the middle marks the branch lengths in evolutionary time (million-years). The colored circle and squares at the tips of the phylogeny represent corresponding species. On the right of the plot, the species denoted by a gray circle, an orange square and a yellow square form a combination of high \acrshort{pd} (17), while the species denoted by the gray circle, the blue square and the yellow square form a combination of low \acrshort{pd} (13). The species with the highest \acrshort{ed} value (12) is represented by a circle, and those with lower \acrshort{ed} values (less than 12) are represented by a square. The yellow and green dashed-lines between species illustrate two pairs of species, one with a low \acrshort{nnd} value (2) and one with a high \acrshort{nnd} value (12).}
+    \label{fig:figure1}
+\end{figure}
+
+While these concerns indicate that support for a role of \acrshort{er} on diversification is not clear, this may be because we do not know what signal \acrshort{er} is expected to leave in phylogenetic trees and extant communities \citep{rabosky_heritability_2009,ricklefs_evolutionary_2010,wiens_causes_2011}. Most studies have only considered diversity-dependence within clades of phylogenetically closely related species \citep{rabosky_equilibrium_2010,etienne_diversity-dependence_2012,foote_diversity-dependent_2018}, whereas only a few have considered diversity-dependence between clades of phylogenetically disparate species \citep{pires_interactions_2017}. A recent study \citep{etienne_phylogenetic_2023} using empirical data on island frogs found that a model with diversity-dependence between closely related species was preferred over one with diversity-dependence also occurring with more distantly related species, indicating that interactions of species with close relatives, but not with distant relatives, negatively affect colonization and diversification. This suggests an important role of \acrshort{er} in species diversification and the need for distinguishing between different levels of \acrshort{er} and scales at which it may have an effect on diversification. However, none of the above-mentioned studies has investigated whether \acrshort{er} directly impacts macro-evolutionary dynamics \citep{rillo_diversity-dependent_2022}. 
+
+Assuming \acrshort{er} affects diversification rates, what signatures does this effect leave in phylogenetic trees of communities? What emergent phylogenetic patterns are expected if species facilitate or compete more strongly with their close relatives? Can phylogenetic limits imposed by \acrshort{er} be differentiated from those imposed by \acrshort{sr}? And how do \acrshort{er} effects operating at the whole clade versus more lineage-specific scales affect phylogenies? To address these questions, here we present a new phylogenetic birth-death simulation model that incorporates both \acrshort{sr} and \acrshort{er}. The model allows for positive, neutral, or negative effects of both \acrshort{sr} and \acrshort{er} on diversification rates. We measure \acrshort{er} using three different mechanisms of how \acrshort{er} can affect diversification (see Methods) each considering a different scale of the effect of \acrshort{er}. We use the new model to simulate communities under a stochastic branching process where speciation rate can vary according to \acrshort{sr} and \acrshort{er}, and analyze whether \acrshort{er} leaves a signature on the diversification dynamics by looking at various tree summary statistics. We aim to provide the first expectations for the effects of these processes on phylogenetic trees by developing a simple simulation model where the effects of \acrshort{sr} and \acrshort{er} can be studied independently or in combination. While inferring parameters from empirical datasets is beyond the scope of this study, our model presents a tool that can be used in future simulation-based parameter estimation methods, for example for generating training datasets for neural network models. Our R package ``evesim" on GitHub contains functions to generate simulated phylogenies using our model \citep{hildenbrandt_evesim_2024}.
+
+\section{Methods}
+\label{ch1::sec::methods}
+
+\subsection{Model} 
+\label{ch1::sec::methods::model}
+We employed a phylogenetic stochastic model that simulates the processes of species birth and death over time \citep{nee_extinction_1994}. The model is a mechanistic process-based model that is parameterized by speciation and extinction rates along with the effect sizes of \acrshort{sr} and \acrshort{er}. It allows us to explore different evolutionary trajectories from phylogenetic trees given specific parameter settings at the start of the simulation. We assumed that all species on the same tree belong to the same clade, thus our study focuses on species diversification patterns within a clade, and the phylogenies simulated include all the extant species in the clade. We investigated different types of effects of \acrshort{er} on species diversification by considering three measures of \acrshort{er}: phylogenetic diversity (\acrshort{pd}, community-level metric), evolutionary distinctiveness (\acrshort{ed}, per-lineage metric), and nearest neighbor distance (\acrshort{nnd}, per-lineage metric). 
+
+\acrshort{pd} measures the amount of evolutionary history represented by a group of species and is commonly used to determine how species occupy different niches \citep{tucker_relationship_2018}. We calculated \acrshort{pd} using Faith's index \citep{faith_conservation_1992}, which represents the total branch length of a phylogenetic tree reconstructed from all species in a clade. \acrshort{ed} quantifies the uniqueness of each of the species relative to other species and is a valuable tool in conservation efforts \citep{cadotte_rarest_2010}. Per species, \acrshort{ed} is defined as the sum of the pairwise distances between focal species and all other species, divided by the number of species minus one. \acrshort{nnd} also quantifies the uniqueness of a species, but only on a very local phylogenetic scale, as it is defined as the phylogenetic distance (branching length of the path) between a focal species and its nearest neighbor. \acrshort{nnd} measures the degree to which each of the species is locally clustered within specific clades, and is less sensitive to higher-level phylogenetic structures than \acrshort{ed} \citep{webb_exploring_2000}. Unlike \acrshort{pd}, which is a clade-level metric and assigns a single value for all species in the clade, \acrshort{ed} and \acrshort{nnd} are lineage-specific metrics, with each lineage assigned its own value.
+
+There are many other choices of \acrshort{er} metrics, e.g. the "Fair Proportion" index \citep{redding_evolutionarily_2008} and the "Evo-Heritage" metric \citep{rosindell_phylogenetic_2024}. However, we aimed to use metrics that are computationally efficient.
+
+$\lambda_i$, the speciation rate of a specific lineage $i$, is given by
+
+\begin{equation}
+\lambda_i=\operatorname{max}{\left(\lambda_0+\beta_NN+\beta_\varPhi\varPhi_i,\ 0\right)}
+\label{equation:three}
+\end{equation}
+where $\lambda_0$ is the intrinsic speciation rate of all the lineages, $N$ is the species richness (across all lineages), $\varPhi_i$ represents \acrshort{er} (either \acrshort{pd}, \acrshort{ed} or \acrshort{nnd}) of the lineage $i$, $\beta_N$ is a coefficient to adjust the effect size of species richness on the speciation rate and $\beta_\varPhi$ is a coefficient to adjust the effect size of \acrshort{er} on the speciation rate. $\beta_N$ and $\beta_\varPhi$ can be positive, zero, or negative. We note that by negative \acrshort{er} we mean negative $\beta_\varPhi$ and thus that as species become evolutionarily less related, speciation rate decreases. Furthermore, if we set both $\beta_N$ and $\beta_\varPhi$ to zero, the model reduces to a standard birth-death model.
+
+When using \acrshort{pd} as an \acrshort{er} metric, we assume that $\varPhi_i$ is the same for every lineage $i$, so the speciation rates of all lineages are equal. Unlike \acrshort{pd}, both \acrshort{ed} and \acrshort{nnd} are calculated separately for every lineage.
+
+To account for the strong correlation between phylogenetic diversity and time when using \acrshort{pd}, we included an offset method in our model to compensate for the inflation of branch lengths in the phylogenetic tree. The method subtracts the tree age $t$ from $\varPhi_t$, which is the phylogenetic diversity at time $t$. The adjusted $\varPhi_t^\prime$ is then given by
+
+\begin{equation}
+\varPhi_t^\prime=\varPhi_t-t.
+\label{equation:two}
+\end{equation}
+
+We assumed that the extinction rate $\mu$ is fixed to the intrinsic rate of extinction which is constant through time and across lineages:
+
+\begin{equation}
+{\mu=\mu}_0.
+\label{equation:four}
+\end{equation}
+
+\subsection{Simulations}
+\label{ch1::sec::methods::simulation}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\textwidth]{chapter1/figure2C.png} % Relative width to the width of the main text
+    \caption{Illustration representing a stochastic simulation under the assumptions of positive speciation and extinction rates alongside a negative coefficient of evolutionary relatedness, exemplified through a scenario where phylogenetic diversity (\acrshort{pd}, left panel) or evolutionary distinctiveness (\acrshort{ed}, right panel) or nearest neighbor distance (\acrshort{nnd}, also right panel) acts as clade-wide (\acrshort{pd}) or lineage-specific (\acrshort{ed} and \acrshort{nnd}) constraint. Although ED and NND scenarios are illustrated in the same panel, the underlying processes are different. Two event types are depicted: speciation (solid gray circles) and extinction (tombstone symbols). During a speciation event, a lineage at a tree tip bifurcates into two lineages (e.g., $E_0$, $E_1$ and $E_3$). An extinction event marks a species as extinct (e.g., $E_2$). In the left panel, the branch color transition from red to blue signifies the variation in the speciation rate of lineages along \acrshort{pd}. In the right panel, the branch color transition from red to blue or green signifies the variation of per-lineage speciation rates within the phylogeny due to lineage specific (\acrshort{ed} or \acrshort{nnd}) phylogenetic diversity-dependence. The simulation unfolds as follows: it initiates from $E_0$ with two ancestral lineages $L_1$ and $L_2$, setting the initial \acrshort{pd} value to 0. Speciation rates for all extant lineages (initially $L_1$ and $L_2$) are derived from \acrshort{pd}. The first time interval, $T_0$, extends the branch lengths of $L_1$ and $L_2$. Prior to sampling event $E_1$, \acrshort{pd} is recalculated based on extant lineages, and speciation rates are updated. Event $E_1$ illustrates $L1$ bifurcating into $L_1$ and $L_3$. The subsequent time interval $T_1$ further extends the branch lengths of $L_1$, $L_2$ and $L_3$. Before sampling each event, \acrshort{pd} and speciation rates are updated. Event $E_2$ marks the extinction of $L_3$, halting its branch growth while $L_1$ and $L_2$ continue to extend through time interval $T_2$. Event $E_3$ illustrates the speciation of $L_2$ into $L_2$ and $L_4$. The final time interval, $T_3$, stops the simulation because the cumulative time ($T_0 + T_1 + T_2 + T_3$) surpasses a pre-determined time threshold, $T$. $T_3$ is then set to $T-(T_0+T_1+T_2)$. The branch lengths of $L_1$, $L_2$, and $L_4$ extend by $T_3$, marking the simulation endpoint.}
+    \label{fig:figure2}
+\end{figure}
+
+We ran a series of simulations of the model under different scenarios in order to investigate the effect and signature of \acrshort{er} on various phylogenetic summary statistics. We started the simulations with two ancestral lineages, setting the values of \acrshort{er} of both lineages to zero. We used the Gillespie algorithm \citep{gillespie_general_1976}, in which the waiting time between two evolutionary events is sampled from an exponential distribution with a mean equal to the inverse of the sum of the rates of all possible events. The probability of each event is proportional to its own rate relative to the sum of the rates of all possible events. 
+
+Two types of events can occur: speciation and extinction. When a speciation event happens, a lineage at the tip of the tree bifurcates into two lineages. When an extinction event happens, a species is marked as extinct. The simulation lasts for a predetermined time, which equals the crown age of the final phylogeny. A successful simulation is conditional on survival of both crown lineages; the simulation will start over if one of the crown lineages goes extinct entirely (see \autoref{fig:figure2} for the illustration of the simulation). Our GitHub repository \texttt{eve} \citep{qin_eve_2023} contains the codebase for the current study.
+
+\begin{table}
+    \centering      
+        \caption{Parameters used in the simulations}
+        \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Parameter}                   & \textbf{Value}                \\ \midrule
+        Intrinsic speciation rate          & 0.4, 0.5, 0.6                 \\
+        Intrinsic extinction rate          & 0, 0.1, 0.2                   \\
+        Crown age                            & 6                             \\
+        Coefficient species richness N ($\beta_N$)      & -0.04, -0.02, 0               \\
+        Coefficient evolutionary relatedness ($\beta_\varPhi$) & -0.04, -0.02, 0, 0.001, 0.002 \\
+        Evolutionary relatedness metric      & PD, ED, NND                   \\ \bottomrule
+        \end{tabular}
+    \label{tab:table1}
+\end{table}
+
+We simulated phylogenies using a variety of parameter combinations (see \autoref{tab:table1}). We assumed a crown age of 6 time units, which can be interpreted as 6 million years. All combinations of parameters in \autoref{tab:table1} were used, to a total of 135 combinations, and each was repeated for the three different \acrshort{er} scenarios: \acrshort{pd}, \acrshort{ed} and \acrshort{nnd}. Thus, we had a total of 405 parameter sets. For each set we simulated 100 phylogenetic trees using the Peregrine high performance computing cluster of the University of Groningen. In our preliminary tests, we increased the number of replicates from 100 to 300 and then 1000 for the fastest parameter settings, but we did not observe noticeable trend changes with the increased number of replicates. Due to hardware limitations, we retained the number of 100 for consistency across all combinations. The parameter sets were chosen such that the simulation can be finished within the time and resource limits of the cluster. Moreover, the effects of $\beta_\varPhi$ on the diversification process are inherently non-symmetrical because positive $\beta_\varPhi$ results in a positive feedback, which has a much greater influence on the final size of the phylogenies. For this reason, we kept the positive $\beta_\varPhi$ values relatively small. Typically, when setting $\lambda_0 = 0.6$, $\mu_0 = 0$, $\beta_N = 0$, and $\beta_\varPhi < -0.1$, the output phylogeny will be very small (often less than five lineages) and hence not very meaningful. If $\beta_\varPhi > 0.002$, then the resulting phylogenies will be very large (often more than 500 lineages), which creates computational problems (many simulation steps with compututionally demanding calculation of the phylogenetic metrics).
+
+We deliberately chose a relatively simple model to assess the effect of \acrshort{er} on diversification, rather than including a variety of realistic ecological interactions linked with \acrshort{er}. It allows us to explore parameter space better, and it may facilitate future parameter estimation from phylogenies. Most importantly, it allows gaining broad generalizable insights based on the fundamental processes we are interested in (i.e., \acrshort{er} and \acrshort{sr} effects on diversification).
+
+\subsection{Data Analysis}
+\label{ch1::sec::methods::data_analysis}
+Raw output from the simulations was processed using the ``eve" package into data compatible with statistics functions in other R packages. For each parameter set, the ``treestats" \citep{janzen_phylogenetic_2024} and ``eve" packages were used to calculate summary statistics for all extant trees, excluding those with only two extant lineages. The statistics chosen were the following: the \acrshort{jone} balance index \citep{lemant_robust_2022}, the Gamma statistic \citep{pybus_testing_2000}, mean branch length, mean pairwise distance (\acrshort{mpd}) \citep{webb_phylogenies_2002} and the Rogers J index of imbalance (\acrshort{rogers} hereafter) \citep{rogers_central_1996}. 
+
+The effects of \acrshort{sr} and \acrshort{er} were measured by the values of $\beta_N$ and $\beta_\varPhi$, respectively. The effects of the scale at which the effect operates, from whole-clade, to species-specific were determined by the \acrshort{er} mechanism (one of the three \acrshort{er} measures: \acrshort{pd} (whole-clade), \acrshort{ed} (intermediate) and \acrshort{nnd} (species-specific).
+
+\subsection{Speciation Rate Evenness}
+\label{ch1::sec::methods::spec-rate-evenness}
+In the \acrshort{ed} and \acrshort{nnd} scenarios, speciation rates are expected to vary between tree tips. We measured how these rates are distributed in phylogenies by adopting a concept similar to measuring species evenness in a community, but instead quantifying the evenness of speciation rates across lineages weighted by their phylogenetic distances. Each phylogeny of $n$ lineages was given by a correlation matrix $\boldsymbol{C}$ with each lineage $i$'s speciation rate represented by $\lambda_{i}\ (i=1,2,3,\ldots,n)$. The phylogenetic evenness index $E$ is then defined as
+
+\begin{equation}
+    E=\frac{\lambda\operatorname{diag}(\boldsymbol{C})^{\top}\boldsymbol{m}-\boldsymbol{m}^{\top}\boldsymbol{C}\boldsymbol{m}}{\lambda^2-\bar{\lambda_i}\lambda}
+\label{equation:nine}
+\end{equation}
+which was originally proposed by \citet{helmus_phylogenetic_2007}. 
+
+In the equation, $\lambda$ denotes $\text{sum}(\lambda_1,\lambda_2,\lambda_3,\ldots,\lambda_n)$ and $\bar{\lambda_i}$ denotes $\text{mean}(\lambda_1,\lambda_2,\lambda_3,\ldots,\lambda_n)$, $\operatorname{diag}(\boldsymbol{C})$ denotes a column vector comprising the diagonal elements of the correlation matrix $\boldsymbol{C}$ (see below), $\boldsymbol{m}$ denotes an $n\times1$ column vector containing values of $\lambda_i$. The value of $E$ ranges between 0 and 1. The maximum value (i.e., 1) of $E$ only occurs when speciation rates among lineages are equal and the tree is completely balanced (star-like). Values of $E$ less than 1 represent increasing unevenness of speciation rates among the lineages. $E$ is sensitive to tree topology such that trees with uniform speciation rates can have different values of evenness.
+
+The correlation matrix $\boldsymbol{C}$ is the standardized pairwise distance matrix. Because we only consider ultrametric (no extinct lineages) and binary (fully resolved) phylogenies, $\boldsymbol{C}$ can be computed as:
+
+\begin{equation}
+    \boldsymbol{C} = \frac{2t - \boldsymbol{R}}{2t}
+\label{equation:eight}
+\end{equation}
+where $\boldsymbol{R}$ is the pairwise distance matrix of all the lineages of the phylogeny of $n$ lineages, with $r_{ij}\ (i=1,2,3,\ldots,n;j=1,2,3,\ldots,n)$ represents the pairwise phylogenetic distance between lineage $i$ and $j$:
+
+\begin{equation}
+    \boldsymbol{R}=	\begin{bmatrix} 
+	0 & r_{12} & r_{13} &  \ldots & r_{1n}  \\
+	r_{21} & 0 & r_{23} &  \ldots & r_{2n}  \\
+	r_{31} & r_{32} & 0  & \ldots & r_{3n}  \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    r_{n1} & r_{n2} & r_{n3} & \ldots & 0
+    \end{bmatrix}.
+\label{equation:seven}
+\end{equation}
+
+As shown in \autoref{equation:eight} and \autoref{equation:seven}, all elements of $\operatorname{diag}(\boldsymbol{C})$ are equal to one, \autoref{equation:nine} can thus be simplified as:
+
+\begin{equation}
+    E=\frac{n}{n-1}(1 - \boldsymbol{m}^{\prime\top}\boldsymbol{C}\boldsymbol{m}^{\prime})
+    \label{equation:ten}
+\end{equation}
+where $\boldsymbol{m}^{\prime} = \boldsymbol{m} / \lambda$.
+
+Note that this simplification is only possible for ultrametric trees with $n \geq 2$, a formal proof of \autoref{equation:eight} and the derivation of \autoref{equation:ten} are provided in \autoref{ch1::sec::appendix::proof} and \autoref{ch1::sec::appendix::simplify}.
+
+In the case of simulated data, the models and parameters are already known to differ. Testing for statistical significance between treatments is thus meaningless; the distributional changes sufficiently demonstrate the influence of the parameters. Therefore, we focused on how summary statistics vary with the strength of \acrshort{er} and \acrshort{sr} to explain the model's power and effects.
+
+\subsection{Data Visualization}
+\label{ch1::sec::methods::data_visualization}
+For visualization purposes, we selected one representative tree for each tree set of 100 trees representing a single parameter set. This tree was chosen among the complete trees based on its index vector, which has the smallest mean Mahalanobis distance \citep{de_maesschalck_mahalanobis_2000} to the other trees in the same tree set (as defined in \autoref{equation:five} below). 
+In order to calculate the Mahalanobis distance for each tree, we first defined the index vector for the $i$-th tree in a set of trees resulted from $k$-th parameter set, where $k$ denotes one of the parameter sets in the 405 combinations in our simulation, as
+
+\begin{align}
+\boldsymbol{v}_{i,k} &= \begin{pmatrix}
+       v_\mathrm{J}^{i,k}, &
+       v_\mathrm{G}^{i,k}, &
+       v_\mathrm{P}^{i,k}, &
+       v_\mathrm{M}^{i,k}, &
+       v_\mathrm{R}^{i,k}
+     \end{pmatrix}^\top
+\label{equation:five}
+\end{align}
+where each element of $\boldsymbol{v}_{i,k}$ represents a summary statistic of the $i$-th tree in the $k$-th set. $v_\mathrm{J}^{i,k}$ denotes the \acrshort{jone} balance index, $v_\mathrm{G}^{i,k}$ denotes the \acrshort{gamma} statistic, $v_\mathrm{P}^{i,k}$ denotes \acrshort{pd}, $v_\mathrm{M}^{i,k}$ denotes the mean pairwise distance, $v_\mathrm{R}^{i,k}$ denotes the \acrshort{rogers} balance index and $\top$ denotes the transpose of vector. These five statistics were selected based on a clustering dendrogram of various summary statistics, where they were found to be less correlated and more evenly spaced than other statistics (see \autoref{ch1::sec::appendix::heatmap}). 
+
+The Mahalanobis distance of $\boldsymbol{v}_{i,k}$ is given as
+
+\begin{equation}
+d_{\mathrm{M}}(\boldsymbol{v}_{i,k}) = \sqrt{(\boldsymbol{v}_{i,k} - \bar{\boldsymbol{v}}_k)^\top \boldsymbol{S}^{-1} (\boldsymbol{v}_{i,k} - \bar{\boldsymbol{v}}_k)}
+\label{equation:six}
+\end{equation}
+where $\boldsymbol{v}_{i,k}$ is the index vector for the $i$-th tree of the $k$-th set. $\bar{\boldsymbol{v}}_k$ comprises five mean values of each element respectively in the index vectors in the $k$-th set, $\top$ denotes the vector transpose, $\boldsymbol{S}$ is the covariance matrix of these vectors and $\boldsymbol{S}^{-1}$ denotes the inverse of $\boldsymbol{S}$.
+
+For each representative tree (i.e. the tree with the smallest Mahalanobis distance to the other trees), we mapped the historical speciation rates onto the tree using the ``eve" package. The variation of speciation rates along tree lineages is represented by a continuous color scale. The actual rate values corresponding to colors were calculated as mean speciation rates (mean value of speciation rates at the beginning and at the end) of the time frames between evolutionary events in a simulation.  
+
+LTT plots were generated using the ``eve" package for each tree set by summarizing all the trees in the set and then displaying the mean LTT curve along with shading representing the confidence interval of the set. The LTT plots were based on extant species only.
+
+\section{Results}
+\label{ch1::sec::results}
+\subsection{Simulation Performance}
+\label{ch1::sec::results::performance}
+All simulation jobs were completed within seven hours on the computing cluster, with most of the parameter sets finishing within one hour.
+
+When extinction rates are 0 and no species richness effect is present, a deceleration in lineage accumulation is observed in the \acrshort{pd} scenario, but only when $\beta_\varPhi$ is negative, that is, higher \acrshort{er} in the communities results in lower speciation rate on all lineages (see \autoref{fig:figure3} and the animations in \autoref{ch1::sec::appendix::treestats}).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter1/figure3B.png} % Relative width to the width of the line
+    \caption{Overview of results of simulations of a pure birth process (no extinction, see \autoref{ch1::sec::appendix::treestats} for other speciation and extinction rate combinations), with dependence of speciation on evolutionary relatedness. For all parameter sets shown in the figure, the intrinsic speciation rate at the start of the simulation ($\lambda_0$) is 0.6, the intrinsic extinction rate ($\mu_0$) is 0, and the coefficient of the species richness effect ($\beta_N$) is 0. The results are grouped by rows according to varying levels of $\beta_\varPhi$ (the coefficient of the evolutionary relatedness effect). On the left, representative simulated phylogenies and associated lineage-through time (LTT) plots are shown for dependence of speciation rates on three metrics of \acrshort{er} (left - phylogenetic diversity (\acrshort{pd}), middle - evolutionary distinctiveness (\acrshort{ed}), and right - nearest neighbor distance (\acrshort{nnd}) scenario). The colors mapped onto the trees represent the values of the speciation rate for each of the lineages during simulation time. The rates increase from blue to red. The trees colored in green are cases where the speciation rate remains unchanged throughout the simulation. Blue line in the LTT plots represents lineage accumulation through time and the shaded area is the 95\% confidence interval. On the right of each row, boxplots for the corresponding summary statistics are shown: \acrshort{jone} -  J One balance index; \acrshort{gamma} - Gamma statistic; \acrshort{sr} - total number of extant lineages; \acrshort{mpd} -  mean pairwise distance; \acrshort{mbl} - the mean branch length.}
+    \label{fig:figure3}
+\end{figure}
+
+\subsection{Effects of Evolutionary Relatedness}
+\label{ch1::sec::results::er_localness}
+We observed a hierarchical structuring in tree topology patterns, from \acrshort{pd} to \acrshort{ed} to \acrshort{nnd}. Under the \acrshort{pd} scenario, trees exhibit a higher degree of balance (interpreted from the \acrshort{jone} balance index) than in the \acrshort{ed} scenario, which in turn exhibits more balanced trees than the \acrshort{nnd} scenario. This pattern is more prominent when $\beta_\varPhi$ decreases from zero towards more negative values, that is, when \acrshort{er} reduces the speciation rates even more. As $\beta_\varPhi$ increases from negative to positive values, that is, the \acrshort{er} effect on the speciation rates transitions from a reduction to augmentation, the differences in tree balance between \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios decrease, and the trees exhibit generally lower degree of balance (see the animations in \autoref{ch1::sec::appendix::animation-main} ending with J\_One). 
+
+As $\beta_\varPhi$ increases from -0.04 to 0 (\acrshort{er} effect becomes neutral), a general decrease in the mean pairwise distances of the trees is observed. However, no substantial change occurs when $\beta_\varPhi$ shifts from 0 to positive values (i.e., a beneficial effect of \acrshort{er} on speciation). When $\beta_\varPhi$ is negative, the trees under the \acrshort{pd} scenario exhibit larger mean pairwise distances than those in the \acrshort{ed} scenario and the trees under the \acrshort{ed} scenario exhibit larger mean pairwise distances than those in the \acrshort{nnd} scenario. As $\beta_\varPhi$ increases from -0.04 to 0, the disparities in mean pairwise distances among \acrshort{pd}, \acrshort{ed}, and \acrshort{nnd} scenarios decrease (see the animations in \autoref{ch1::sec::appendix::animation-main} ending with \acrshort{mpd} and \acrshort{mbl}). The patterns of mean branch lengths across $\beta_\varPhi$ settings are similar to those of mean pairwise distances.
+
+The distribution of internal nodes, or the concentration of speciation events, were interpreted using the \acrshort{gamma} statistic. When $\beta_\varPhi$ is negative, the speciation events in the \acrshort{pd} scenario are located more closely to the root than in the \acrshort{ed} scenario, and the events in the \acrshort{ed} scenario are closer to the root than those in the \acrshort{nnd} scenario. These differences are reduced as $\beta_\varPhi$ increases from negative values towards zero. This pattern changes as $\beta_\varPhi$ shifts from zero towards positive values, particularly when $\beta_N$ is 0. As $\beta_\varPhi$ increases from -0.04 to 0.002, the distributions of speciation events in all three scenarios change from being closer to the root to being more evenly distributed throughout the temporal range of the phylogeny (see the animations in \autoref{ch1::sec::appendix::animation-main} ending with \acrshort{gamma}). 
+
+The trees become notably larger (more species) as $\beta_\varPhi$ increases from -0.04 to 0. This increase is minimized when $\beta_\varPhi$ increases from 0 to 0.002. When $\beta_\varPhi$ is negative, the tree sizes are generally largest in the \acrshort{nnd} scenario, second largest in the \acrshort{ed} scenario and smallest in the \acrshort{pd} scenario. This pattern does not persist when $\beta_\varPhi$ is zero or positive. The pattern is reversed when $\beta_\varPhi$ is positive, in which case the \acrshort{pd} scenario generally has the largest tree sizes and the \acrshort{nnd} scenario the smallest (see the animations in \autoref{ch1::sec::appendix::animation-main} ending with \acrshort{sr}).
+
+Of all model parameters, $\beta_\varPhi$ has the strongest effect on the evenness of the speciation rates across lineages. In all parameter combinations, the disparities of speciation rate evenness between \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios decline with increasing $\beta_\varPhi$ (see \autoref{fig:figure4}B and the animations in \autoref{ch1::sec::appendix::animation-main} ending with ERE). 
+
+\subsection{Interaction between the Effects}
+\label{ch1::sec::results::interaction_er_sr}
+The effects of $\beta_\varPhi$ (for instance the degree of disparities of the statistics between \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios, and the changes of the statistics along with varying $\beta_\varPhi$) appear more prominent when $\beta_N$ imposes a less pronounced (i.e. less negative) effect on speciation, that is, the \acrshort{sr} effect on the speciation rates is less pronounced, with the strongest effects observed at $\beta_N = 0$ which means the SR effect is neutral. From another point of view, the influence of $\beta_N$ on the tree summary statistics is more prominent when $\beta_\varPhi$ shifts towards more negative values (see \autoref{fig:figure4}A). 
+
+When negative \acrshort{sr} effect on speciation rate becomes weaker ($\beta_N$ increases from -0.04 to 0, \acrshort{sr} effect on the speciation rates shifts from reduction to neutral), the trees become larger and less balanced, mean branch lengths and mean pairwise distances of the trees become smaller, the distribution of speciation events changes from being closer to the root to being more evenly distributed, and the degrees of disparities of speciation rate evenness among \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} increase (see \autoref{fig:figure4}A for details and see all the animations in \autoref{ch1::sec::appendix::animation-main} starting with beta\_n for animated comparisons). Generally, stronger negative \acrshort{sr} effect reduces the differences of tree statistics among \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios, it also reduces the differences of the statistics between different $\beta_\varPhi$ settings. This is particularly true for the \acrshort{gamma} statistic and \acrshort{jone} balance index.
+
+The above described patterns, however, do not apply to speciation rate evenness. When the negative effect of \acrshort{sr} on speciation rate becomes stronger ($\beta_N$ decreases from 0 to -0.04), the disparities of speciation rate evenness among \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios appear more prominent when $\beta_\varPhi$ value becomes more negative.
+
+\subsection{Effects of Intrinsic Speciation and Extinction Rates}
+\label{ch1::sec::results::lambda_mu_effects}
+Higher intrinsic speciation rates ($\lambda_0$) lead to less balanced phylogenetic trees and more disparities among the scenarios. Higher intrinsic extinction rates ($\mu_0$), however, lead to more balanced trees and less disparities. The effects of $\lambda_0$ and $\mu_0$ are intertwined with both $\beta_\varPhi$ and $\beta_N$. The effects are described in detail in \autoref{ch1::sec::appendix::effect-lambda-mu}. Besides \autoref{fig:figure4}, we also produced a set of animated plots (\autoref{ch1::sec::appendix::animation-main}), showing how tree summary statistics we measured change along with $\beta_\varPhi$, $\beta_N$, $\lambda_0$ and $\mu_0$, to help interpret the patterns resulting from different levels of evolutionary relatedness effects (as determined by $\beta_\varPhi$) and between the three different versions of \acrshort{er} dependence.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{chapter1/figure4.png} % Relative width to the width of the line
+    \caption{Tree summary statistics for the three scenarios of dependence of speciation rates (dependence on phylogenetic diversity (\acrshort{pd}), evolutionary distinctiveness (\acrshort{ed}) and nearest neighbor distance dependence (\acrshort{nnd})), for various levels of the evolutionary relatedness effect ($\beta_\varPhi$) and the species richness effect ($\beta_N$). $\lambda_0$ - initial speciation rate; $\mu_0$ - fixed extinction rate; x-axis: strength of \acrshort{er} effects; y-axis: value of the statistics. The following statistics are shown in panel A: \acrshort{jone} -  J One balance index; \acrshort{gamma} - Gamma statistic; \acrshort{mbl} - the mean branch length; \acrshort{mpd} -  mean pairwise distance; \acrshort{sr} - total number of extant lineages. The folloing statistic is shown in panel B: SRE - speciation rate evenness. SRE is shown in a separated panel because it has different patterns and is in a different parameter setting. We pick SRE from this parameter setting to better present the disparities among different scenarios and across different levels of the \acrshort{er} effect.}
+    \label{fig:figure4}
+\end{figure}
+
+\section{Discussion}
+\label{ch1::sec::discussion}
+\subsection{From Clade-Wide to Lineage-Specific}
+\label{ch1::sec::discussion::clade-to-lineage}
+Evidence for ecological limits on diversity has been found or suggested in many studies \citep{rabosky_ecological_2009,mittelbach_evolution_2007}, and ecological limits may exert influence on diversification by directly impacting rates of speciation \citep{wiens_causes_2011}. Our simulations further suggested that, from clade-wide to lineage-specific, different extents of ecological limits result in unique phylogenetic tree properties, when using \acrshort{er} as a proxy. 
+
+When phylogenetic diversity acts as a proxy regulating speciation rate of all lineages (\acrshort{pd} scenario), a negative \acrshort{er} effect (or $\beta_\varPhi$, the corresponding parameter in our simulations) can be interpreted as a niche space limitation on clade expansion as phylogenetic diversity increases, which applies equally to all species in the clade. Under this interpretation, an increase in phylogenetic diversity within a clade leads to saturation of niches. Conversely, a positive \acrshort{er} effect provides the clade with the potential to exploit additional resources as phylogenetic diversity increases, potentially resulting in a rapid accumulation of species as the potential for biotic interactions increases. 
+
+By relating (clade-wide, \acrshort{pd} scenario) speciation rate to \acrshort{er}, the \acrshort{pd} scenario exhibits similarities to models with diversity carrying capacity (e.g. diversity-dependent diversification model, DDD), with negative \acrshort{er} effect (negative $\beta_\varPhi$) on the speciation rates imposing an upper limit of phylogenetic diversity carrying capacity. The role of negative \acrshort{sr} effect (negative $\beta_N$) in our model is similar to the concept of carrying capacity in the DDD model, negative \acrshort{er} and \acrshort{sr} effects in our simulations both markedly reduce average tree sizes, given a constant simulation time.
+
+In the \acrshort{ed} and \acrshort{nnd} scenarios, a negative \acrshort{er} effect indicates a scenario where more distantly related species are less likely to speciate, which may reflect speciation through an adaptive dynamics scenario where competition for similar resources leads to trait divergence to escape a fitness value \citep{geritz_evolutionary_1999,bolnick_sympatric_2007}. It may also reflect environmental filtering \citep{thakur_environmental_2017}, where closely related species matching the environment are more likely to speciate. In contrast, a positive \acrshort{er} effect indicates that more distantly related species are more likely to produce descendants, for example, due to species adapting to different environmental conditions and thereby exploring new niche space \citep{kozak_does_2006}. 
+
+By relating lineage-specific speciation rates to \acrshort{er}, the \acrshort{ed} and \acrshort{nnd} scenarios can account for evolutionary trajectories in which niches are either conserved (more similar than expected), constrained (diverging within a restricted range of available niches), or divergent (less similar than expected), based on different settings of \acrshort{er} effects (see the illustration of niche conservatism by \citet{pyron_phylogenetic_2015}). Negative \acrshort{er} effect also trims the average tree sizes in the \acrshort{ed} scenario, but this effect seems diminished or even absent in the \acrshort{nnd} scenario. Negative effects of \acrshort{er} decrease from \acrshort{pd} scenario to \acrshort{ed} scenario to \acrshort{nnd} scenario; along this "gradient" of metrics, ecological limits exert increasingly smaller influence on overall species richness of the communities, due to their impacts being more concentrated to close relatives (see also the speciation rate transitioning in \autoref{fig:figure3}).
+
+The unevenness of speciation rates among the tips increases from \acrshort{pd} to \acrshort{ed} and \acrshort{nnd} (note that although in \acrshort{pd} scenario all tips of a tree have the same speciation rate, PD trees from the same parameter setting could still have different unevenness due to different tree topologies). When the \acrshort{er} effect is negative, the more distinct lineages are less likely to spawn new lineages, leading to a "clustering" where closer lineages have closer speciation rates. As the effect of \acrshort{er} goes from \acrshort{pd} to \acrshort{ed} to \acrshort{nnd}, large "clusters" break apart into small and separate clades on the tree, thereby increasing unevenness. When we shift the \acrshort{er} effect to positive, more distinct lineages are more prone to speciate, which may cause an "overdispersion" of the rates rather than a "clustering" (\autoref{fig:figure4}B). In the \acrshort{ed} and \acrshort{nnd} scenarios, the speciation rates among the tips are directly determined by their distances to the clade (\acrshort{ed}) or their immediate neighbors (\acrshort{nnd}), so the observed unevenness could also be interpreted as an unevenness of \acrshort{er}. 
+
+In general, we observed hierarchical patterns in various summary statistics (e.g. \acrshort{jone} balance index, \acrshort{gamma} statistic and speciation rate evenness) from clade-wide to lineage-specific ecological limits (scenarios, i.e. \acrshort{pd}, \acrshort{ed}, \acrshort{nnd}) when \acrshort{er} effect is negative. These patterns fade as \acrshort{er} effect shifts from negative to neutral ($\beta_\varPhi = 0$). We did not symmetrically explore the positive \acrshort{er} effects due to computational limitations as explained above.
+
+We observed prominent difference of tree sizes between scenarios, with \acrshort{pd} trees being the smallest, \acrshort{ed} trees being noticeably larger and \acrshort{nnd} trees being the largest on average. Tree size often shows strong correlation with phylogenetic tree statistics, even after applying size correction methods, regardless of the underlying model \citep{janzen_tree_2023}. This may explain why $\beta_\varPhi$ impacts the balance and mean pairwise distances of \acrshort{pd} trees, even though speciation rates across lineages are consistently uniform. To verify if tree size confounds our interpretation, we compared all the statistics from our results with the tree size correlation curves by \citet{janzen_tree_2023}. We found that the correlations between statistics and tree size in our results are opposite to patterns observed by \citet{janzen_tree_2023} as tree size increases from 10 to 100. This implies that our findings are unlikely to be due to an effect of tree size. Rather, if the effect of tree size would be corrected for, we would expect our patterns to be even more pronounced.
+
+\subsection{Species Richness Reduces Evolutionary Relatedness Signature}
+\label{ch1::sec::discussion::sr-reduce-er}
+Debates in ecology persist regarding the efficacy of phylogenetic metrics serving as proxies for species richness or functional diversity \citep{mazel_prioritizing_2018,owen_global_2019}. Our model introduces a more flexible scenario wherein species richness and phylogenetic (or evolutionary) relatedness operate concurrently. Their impacts on species diversification can be independently positive, neutral, or negative. We observed a stronger impact from \acrshort{er} as \acrshort{sr} effect becomes neutral ($\beta_N$ shifts from negative values to 0) on speciation rate in communities, with the most pronounced \acrshort{er} impact occurring when the \acrshort{sr} effect is neutral ($\beta_N = 0$), where \acrshort{sr} has no influence on species diversification. Furthermore, we noted that as \acrshort{sr} imposes a more negative effect, the disparities in various tree statistics (e.g., \acrshort{jone} balance index, mean branch length, mean pairwise distance, and \acrshort{gamma} statistic) among \acrshort{pd}, \acrshort{ed}, and \acrshort{nnd} scenarios become less evident or even disappear. Based on these patterns, we suggest that when speciation rate is limited by species richness, the signature of evolutionary relatedness is concealed. However, evolutionary relatedness can still play a complementary role in explaining macroevolutionary patterns if the impact of species richness is minor and the impact of evolutionary relatedness is substantial.
+
+\subsection{Diverse Evolutionary Trajectories Cause Tree Imbalance}
+\label{ch1::sec::discussion::imbalance}
+Imbalanced phylogenies are frequently observed in empirical research, and their occurrence has been attributed to various factors, including errors in phylogenetic data, incomplete species sampling, and biases introduced by reconstruction methods; additionally, such imbalance may reflect variations in evolutionary rates within trees \citep{stam_does_2002, blum_which_2006}. Simulations based on earlier stochastic models often show discrepancies when compared to empirical evidence, highlighting a potential misalignment between model predictions and actual observations \citep{blum_which_2006}, although there is significant variation in the degree of imbalance between empirical clades \citep{janzen_phylogenetic_2024}.
+
+Our model offers more diverse evolutionary trajectories including lineage-specific scenarios that allow each lineage within a tree to have distinct speciation rates. Our analysis reveals notable differences in speciation rate variations within trees across different scenarios (see \autoref{fig:figure4}B, the differences in speciation rate evenness), from \acrshort{pd} through \acrshort{ed} to \acrshort{nnd}. This hierarchical pattern reflects a shift in the impact of evolutionary relatedness--becoming increasingly concentrated among closer relatives--and a corresponding increase in speciation rate variation among lineages. Phylogenies simulated under our model can be more balanced or less balanced compared to a simple birth-death scenario. For example, in the \acrshort{nnd} scenario where trees often exhibit large speciation rate variation when \acrshort{er} imposes negative effect, stronger negative \acrshort{er} effect results in higher speciation rate variation and the corresponding trees exhibit greater imbalance. See \autoref{ch1::sec::appendix::imbalance} for a comparison of phylogenetic imbalance between empirical trees and trees simulated under our model.
+
+\subsection{Extinction Process and Empirical Application}
+\label{ch1::sec::discussion::}
+Although macroevolutionary dynamics are often studied through dependence of speciation rates on (phylogenetic) diversity metrics, the speed at which species go extinct may also be linked to ecological factors. Competition may play a non-negligible role in increasing the extinction risk of species, but its effects can vary depending on the context. For example, empirical evidence from \citet{bengtsson_interspecific_1989} on rock pool zooplankton demonstrates that interspecific competition increases local extinction rates; \citet{dangremond_apparent_2010} found that the proximity of an invasive grass increased seed predation on an endangered lupine species and accelerated its decline; \citet{timmermann_quantifying_2020} reviewed the extinction of Neanderthals and highlighted how competitive pressures, coupled with resource exploitation efficiency, played a significant role in Neanderthals’ demise. Overall, competition for finite ecological resources can accelerate species extinction, particularly for species that are more vulnerable to antagonistic ecological interactions. 
+
+If \acrshort{er}-dependent extinction were incorporated in our simulation, we expect that under the PD scenario, negative ER effects should lead to larger trees due to decreasing community-wide extinction rates, similar to the positive feedback loop of ER-dependent speciation. Positive ER effects on extinction would likely result in smaller trees. For the ED scenario, negative ER effects would mean distinct species are less likely to go extinct, making trees less balanced, while positive ER effects would promote the extinction of distinct species, leading to an auto-balancing process. For the NND scenario, ER effects are more local, which may result in different effects than for PD or ED.
+
+Enabling both ER-dependent speciation and extinction, with all possible positive/negative combinations, could lead to even more diverse evolutionary trajectories. However, without data, drawing concrete implications would be challenging. We stress that increased extinction can eliminate some of the information contained in phylogenies, which would further burden our interpretation from phylogenetic trees.
+
+In some real-world scenarios, it is possible that ER effects are so strong that SR is not dominating, which could explain the significant imbalance observed in empirical phylogenies, even when SR effects might otherwise obscure this pattern. However, fitting complex models to empirical phylogenies, such as through maximum-likelihood estimation or approximate Bayesian computation, presents mathematical and technical challenges \citep{etienne_estimating_2014, xie_can_2023}. Alternative methods such as neural networks can directly infer parameters from empirical phylogenies, but as models grow more complex, it becomes more difficult to recover parameters accurately, regardless of the method used \citep{qin_performance_2024}. Nonetheless, it should still be possible to identify which ER scenarios generate evolutionary patterns that are closest to empirical data through neural network classification tasks. Such analyses may enable us to re-evaluate how ecological factors shape biodiversity.
+
+\clearpage
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries} % style
+  {\thesubsection)}            % label: A)
+  {0.8em}                      % spacing between label and title
+  {}                           % before-code
+\section{Appendix}
+\setcounter{subsection}{0}
+\subsection{Animation of Main Simulation}
+\label{ch1::sec::appendix::animation-main}
+Animated plots were generated to aid the explanation of model behaviors and phylogenetic patterns of the main simulation. The plots were named in a format of "parameter\_statistic.gif" where parameter refers to the changing parameter in the animation and statistic refers to the summary statistic the plot shows. For example, "beta\_n\_Gamma.gif" is an animation showing the Gamma statistics among different parameter settings and transitioning in $\beta_N$.
+
+\subsection{Heatmaps}
+\label{ch1::sec::appendix::heatmap}
+Heatmaps were plotted to visualize the correlation matrix of a number of tree statistics under different \acrshort{er} scenarios. A representative tree was selected based on the heatmaps, using the statistics that are less correlated and more evenly spaced on the heatmap. There are three heatmaps, each presenting one scenario.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{chapter1/heatmap_PD.png} % Relative width to the width of the main text
+    \caption{Correlation heatmap of tree‐shape statistics for phylogenies simulated under the \acrshort{pd} scenario of the \texttt{eve} model. Each cell shows the pairwise Pearson correlation between two summary statistics; rows and columns are ordered by hierarchical clustering to highlight groups of strongly correlated metrics.}
+    \label{fig:heatmap-pd}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{chapter1/heatmap_ED.png} % Relative width to the width of the main text
+    \caption{Correlation heatmap of tree‐shape statistics for phylogenies simulated under the \acrshort{ed} scenario of the \texttt{eve} model. Each cell shows the pairwise Pearson correlation between two summary statistics; rows and columns are ordered by hierarchical clustering to highlight groups of strongly correlated metrics.}
+    \label{fig:heatmap-ed}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{chapter1/heatmap_NND.png} % Relative width to the width of the main text
+    \caption{Correlation heatmap of tree‐shape statistics for phylogenies simulated under the \acrshort{nnd} scenario of the \texttt{eve} model. Each cell shows the pairwise Pearson correlation between two summary statistics; rows and columns are ordered by hierarchical clustering to highlight groups of strongly correlated metrics.}
+    \label{fig:heatmap-nnd}
+\end{figure}
+
+\clearpage
+\subsection{Tree Imbalance}
+\label{ch1::sec::appendix::imbalance}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{chapter1/balance_empirical.png} % Relative width to the width of the main text
+    \caption{Comparison of phylogenetic tree imbalance between empirical clades and clades simulated using our model. The y-axis shows the J\_One balance index, with lower values indicating higher degree of imbalance. The leftmost group of boxes shows the tree imbalance computed from empirical trees obtained from \citet{janzen_phylogenetic_2024}. The x-axis indicates the taxonomic group of the empirical trees; there are seven empirical sub-clades. In the remaining groups of boxes, the x-axis indicates the ER scenario (PD, ED, or NND) and the effect size of ER ($\beta_\varPhi$) used for simulating the trees. The remaining parameters are fixed: speciation rate $\lambda_0 = 0.6$, extinction rate $\mu_0 = 0$ and effect size of SR $\beta_N$ = 0. The plots show that under certain parameter values, we can generate trees with higher levels of imbalance, bringing the simulated phylogenies closer to empirical phylogenies. For example, with a net diversification rate ($\lambda_0 - \mu_0$) = 0.6, $\beta_\varPhi > 0.001$ , and $\beta_N$ = 0, we can generate phylogenies that are more imbalanced than those of mammals and amphibians under the PD and ED scenarios. Further increasing the speciation rate and $\beta_\varPhi$ could yield even more imbalanced trees. Under the NND scenario we estimate that $\beta_\varPhi < -0.01$ can produce phylogenies close to empirical trees. We observed substantial variation in imbalance between empirical clades, with some clades, such as ferns and birds, much more imbalanced, while others, such as cartilaginous fish, more balanced. Given the smaller sample size and potential biases in empirical phylogenies, these findings should be interpreted with caution.}
+    \label{fig:imbalance}
+\end{figure}
+
+\subsection{Tree Statistics and LTT Plots with Representative Trees}
+\label{ch1::sec::appendix::treestats}
+Tree statistics and LTT plots with representative trees were plotted for all the parameter settings of the main simulation. The plots were named in a format of "$\lambda_0$\_$\mu_0$\_$\beta_N$.png". For example, "0.6\_0\_0.png" presents the results under the parameter setting $\lambda_0$ = 0.6, $\mu_0$ = 0 and $\beta_N$ = 0.
+
+\subsection{Effects of Intrinsic Speciation and Extinction Rates}
+\label{ch1::sec::appendix::effect-lambda-mu}
+We found that the intrinsic speciation rate ($\lambda_0$) also showed a substantial impact on tree statistics. The effects of this parameter are intertwined with both $\beta_\varPhi$ and $\beta_N$ (see animations in \autoref{ch1::sec::appendix::animation-main} starting with lambda and mu).
+
+As $\lambda_0$ increases, the differences in tree balance across scenarios increase, particularly when $\beta_\varPhi$ has smaller positive effect or the effect is more negative. The trees become generally less balanced as $\lambda_0$ increases. The effects of $\lambda_0$ are stronger when $\beta_\varPhi$ is more negative and $\beta_N$ is closer to zero, with the most profound case being $\beta_\varPhi=-0.04$ and $\beta_N=0$ where increasing $\lambda_0$ results in most evident increase of disparities of balance between \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios (see the animations in \autoref{ch1::sec::appendix::animation-main} starting with lambda and ending with J\_One). 
+
+In contrast to $\lambda_0$, an increase in the intrinsic extinction rate ($\mu_0$) results in more balanced trees and less disparities of balance among the \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios. The reduction of disparities is more prominent when $\beta_\varPhi$ becomes more negative. The most prominent case is when $\beta_\varPhi=-0.04$ and $\beta_N=0$ where increasing $\mu_0$ results in most evident reduction of disparities of balance between \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios (see the animations in \autoref{ch1::sec::appendix::animation-main} ending with J\_One) (see the animations in \autoref{ch1::sec::appendix::animation-main} starting with mu and ending with J\_One).
+
+An increase in $\lambda_0$ from 0.4 to 0.6 generally leads to a reduction in mean branch length and mean pairwise distance, while an increase in $\mu_0$ from 0 to 0.2 generally leads to an increase in these statistics (see the animations in \autoref{ch1::sec::appendix::animation-main} starting with lambda and mu, ending with \acrshort{mpd} and \acrshort{mbl}).
+
+The disparities of speciation events distributed across the phylogeny among \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} scenarios, as measured by the gamma statistic, become more prominent as $\lambda_0$ increases and less prominent as $\mu_0$ increases. The distribution of speciation events changes from being closer to the root to being more evenly distributed as $\mu_0$ increases (see the animations in \autoref{ch1::sec::appendix::animation-main} starting with lambda and mu, ending with \acrshort{gamma}). 
+
+When $\beta_\varPhi$ effect is negative, increasing $\lambda_0$ has the largest effect of increasing the tree sizes in the \acrshort{nnd} scenario. This effect is smaller in the \acrshort{ed} scenario and even smaller in the \acrshort{pd} scenario. Increasing $\mu_0$ has the largest effect of reducing the tree sizes in the \acrshort{nnd} scenario; this effect is smaller in the \acrshort{ed} scenario and even smaller in the \acrshort{pd} scenario. When $\beta_\varPhi$ effect is zero or positive, these trends are diminished (see the animations in \autoref{ch1::sec::appendix::animation-main} starting with lambda and mu, ending with \acrshort{sr}).
+
+Increasing $\lambda_0$ only has the effect of reducing the disparities of speciation rate evenness among \acrshort{pd}, \acrshort{ed} and \acrshort{nnd} when $\beta_\varPhi$ is negative and $\beta_N$ is 0. $\mu_0$ has no obvious effect on the evenness of the speciation rates (see \autoref{fig:figure4}B and the animations in \autoref{ch1::sec::appendix::animation-main} starting with lambda and mu, ending with ERE).
+
+\subsection{Correlation Matrix in Ultrametric Phylogenetic Trees}
+\label{ch1::sec::appendix::proof}
+
+\newtheorem{definition}{Definition}
+\newtheorem*{theorem}{Theorem}
+This section presents a proof of the relationship between the correlation matrix and the phylogenetic distance matrix for any ultrametric phylogeny under the Brownian motion model of trait evolution \citep{felsenstein_phylogenies_1985, martins_phylogenies_1997}. Specifically, we prove that the correlation matrix \( \boldsymbol{C} \) is given by
+
+\begin{equation}
+    \boldsymbol{C} = \frac{2t - \boldsymbol{R}}{2t}
+    \label{eq:correlation_distance_relationship}
+\end{equation}
+where \( t \) is the crown age of the phylogeny, and \( \boldsymbol{R} \) is the phylogenetic distance matrix.
+
+\begin{definition}[Phylogenetic Tree]
+A phylogenetic tree is denoted as \( \mathcal{T} = (\mathcal{N}, \mathcal{E}) \), where \( \mathcal{N} \) is the set of nodes, including the root, internal nodes, and tips (leaves) representing taxa, and \( \mathcal{E} \) is the set of edges (branches) connecting the nodes. Each edge \( e \in \mathcal{E} \) has an associated branch length \( l_e > 0 \).
+\end{definition}
+
+\begin{definition}[Ultrametric Tree]
+An ultrametric tree is a rooted phylogenetic tree in which all tips (leaves) are equidistant from the root. This implies that the total path length from the root to any tip is the same for all tips.
+\end{definition}
+
+\begin{definition}[Brownian Motion Model]
+In the Brownian motion model of trait evolution, the variance of trait change along a branch of length \( l_e \) is \( \sigma^2 l_e \), where \( \sigma^2 \) is the evolutionary rate. Trait changes along different branches are independent unless they share common ancestry.
+\end{definition}
+
+\begin{definition}[Variance of a Trait]
+For each tip \( i \in \mathcal{L} \), let \( P_i \) denote the set of edges (branches) on the path from the root to tip \( i \). The variance of a neutral trait \( X_i \) at tip \( i \) is defined as
+
+\begin{equation}
+    V_{ii} = \operatorname{Var}(X_i) = \sigma^2 \sum_{e \in P_i} l_e.
+    \label{eq:variance_tip}
+\end{equation}
+\end{definition}
+
+\begin{definition}[Covariance Between Traits]
+The covariance between traits at tips \( i \) and \( j \) is defined as
+
+\begin{equation}
+    V_{ij} = \operatorname{Cov}(X_i, X_j) = \sigma^2 \sum_{e \in P_i \cap P_j} l_e,
+\end{equation}
+where \( P_i \cap P_j \) is the set of shared edges on the paths from the root to tips \( i \) and \( j \).
+\end{definition}
+
+\begin{definition}[Correlation Coefficient]
+The correlation coefficient between tips \( i \) and \( j \) is defined as
+
+\begin{equation}
+    C_{ij} = \frac{V_{ij}}{\sqrt{V_{ii} V_{jj}}}.
+    \label{eq:correlation}
+\end{equation}
+\end{definition}
+
+\begin{definition}[Phylogenetic Distance]
+The phylogenetic distance \( R_{ij} \) between tips \( i \) and \( j \) is defined as
+
+\begin{equation}
+    R_{ij} = \sum_{e \in P_i} l_e + \sum_{e \in P_j} l_e - 2 \sum_{e \in P_i \cap P_j} l_e.
+\end{equation}
+By virtue of \autoref{eq:variance_tip} this simplifies to:
+
+\begin{equation}
+    R_{ij} = \frac{V_{ii} + V_{jj} - 2 V_{ij}}{\sigma^2}.
+    \label{eq:phylogenetic_distance}
+\end{equation}
+\end{definition}
+
+\begin{theorem}
+For any ultrametric phylogeny under the Brownian motion model, the correlation matrix \( \boldsymbol{C} \) is given by:
+
+\begin{equation}
+    \boldsymbol{C} = \frac{2t - \boldsymbol{R}}{2t},
+\end{equation}
+where \( t \) is the crown age of the phylogeny, and \( \boldsymbol{R} \) is the phylogenetic distance matrix.
+\label{theorem:one}
+\end{theorem}
+
+\begin{proof}
+We begin by rearranging \autoref{eq:phylogenetic_distance} as
+
+\begin{equation}
+    V_{ij} = \frac{V_{ii} + V_{jj} - \sigma^2 R_{ij}}{2}.
+    \label{eq:covariance_from_distance}
+\end{equation}
+
+\noindent Substituting \autoref{eq:covariance_from_distance} into the correlation coefficient formula in \autoref{eq:correlation} leads to:
+
+\begin{equation}
+    C_{ij} = \frac{V_{ii} + V_{jj} - \sigma^2 R_{ij}}{2\sqrt{V_{ii} V_{jj}}}.
+    \label{eq:correlation_substitute}
+\end{equation}
+
+\noindent Because the tree is ultrametric, the total path length from the root to any tip \( i \) equals the crown age \( t \). Hence, for any tip \( i \) and \( j \), recall from \autoref{eq:variance_tip}, we get:
+
+\begin{equation}
+    V_{ii} = V_{jj} = \sigma^2 \sum_{e \in P_i} l_e = \sigma^2 t.
+    \label{eq:equal_variances}
+\end{equation}
+
+\noindent Substituting \( V_{ii} = V_{jj} = \sigma^2 t \) into \autoref{eq:correlation_substitute} leads to
+
+\begin{equation}
+    C_{ij} = \frac{2\sigma^2 t - \sigma^2 R_{ij}}{2\sigma^2 t}.
+\end{equation}
+
+\noindent Then we factor out \( \sigma^2 \):
+
+\begin{equation}
+    C_{ij} = \frac{2t - R_{ij}}{2t}.
+    \label{eq:correlation_final}
+\end{equation}
+
+\noindent Because \( C_{ij} \) denotes all the elements in the correlation matrix \( \boldsymbol{C} \), and \( R_{ij} \) denotes all the elements in the phylogenetic distance matrix \( \boldsymbol{R} \), \autoref{eq:correlation_final} implies:
+
+\begin{equation}
+    \boxed{\boldsymbol{C} = \frac{2t - \boldsymbol{R}}{2t}}.
+\end{equation}
+
+\noindent This completes the proof.
+\end{proof}
+
+\subsection{Simplification of the Speciation Rate Evenness Computation}
+\label{ch1::sec::appendix::simplify}
+In this section we continue with the simplification of \autoref{equation:nine}. For binary trees, the number of tips $n \geq 2$. If $\operatorname{diag}(\boldsymbol{R})$ represents the vector comprising the diagonal elements of $\boldsymbol{R}$, by definition of $\boldsymbol{R}$, all elements in $\operatorname{diag}(\boldsymbol{R})$ are equal to 0, thus all elements in $\operatorname{diag}(\boldsymbol{C})$ are equal to 1. Then we have
+
+\begin{equation}
+    \operatorname{diag}(\boldsymbol{C})^{\top}\boldsymbol{m} = \lambda.
+\end{equation}
+
+\noindent Recall that 
+
+\begin{equation}
+    \bar{\lambda_i} = \frac{\lambda}{n}.
+\end{equation}
+
+\noindent So \autoref{equation:nine} can be rewritten as
+
+\begin{equation}
+    E=\frac{\lambda^2-\boldsymbol{m}^{\top}\boldsymbol{C}\boldsymbol{m}}{\lambda^2-\frac{\lambda^2}{n}}
+\end{equation}
+
+\noindent Factoring out $\lambda^2$ leads to
+
+\begin{equation}
+        E=\frac{n}{n-1}(1 - \frac{\boldsymbol{m}^{\top}\boldsymbol{C}\boldsymbol{m}}{\lambda^2})
+\end{equation}
+
+\noindent Defining$\boldsymbol{m}^{\prime} = \boldsymbol{m} / \lambda$, we get
+
+\begin{equation}
+    \boxed{E=\frac{n}{n-1}(1 - \boldsymbol{m}^{\prime\top}\boldsymbol{C}\boldsymbol{m}^{\prime})}
+\end{equation}
+}
