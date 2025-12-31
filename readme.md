@@ -63,7 +63,7 @@ If you use Overleaf’s GitHub integration, link this repository to your Overlea
 ## Publications
 
 - **Qin, T.**, Valente, L.†, & Etienne, R.† (2025). *Impact of evolutionary relatedness on species diversification and tree shape.* **Journal of Theoretical Biology**.  
-  �� Awarded the inaugural *Denise Kirschner Best Student Paper Prize* (2025).  
+  🏆 Awarded the inaugural *Denise Kirschner Best Student Paper Prize* (2025).  
   † Joint senior authors.
 
 - **Qin, T.**, van Benthem, K., Valente, L.†, & Etienne, R.† (2025). *Parameter estimation from phylogenetic trees using neural networks and ensemble learning.* **Systematic Biology**.  
@@ -71,15 +71,6 @@ If you use Overleaf’s GitHub integration, link this repository to your Overlea
 
 - **Qin, T.**, van Benthem, K., Valente, L.†, & Etienne, R.†. *Identifying evolutionary relatedness effects on diversification from phylogenies using neural networks.* Manuscript in preparation.  
   † Joint senior authors.
-
----
-
-## Releases and changelog
-
-I use **GitHub Releases** as the canonical changelog and distribution channel.
-
-- **Changelog (latest):** https://github.com/EvoLandEco/Thesis/releases/latest  
-- **All releases:** https://github.com/EvoLandEco/Thesis/releases  
 
 ---
 
