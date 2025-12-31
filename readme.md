@@ -6,6 +6,12 @@
 [![Last commit](https://img.shields.io/github/last-commit/EvoLandEco/Thesis)](https://github.com/EvoLandEco/Thesis/commits/main)
 [![License](https://img.shields.io/github/license/EvoLandEco/Thesis)](LICENSE)
 
+<p align="center">
+  <kbd>
+    <img src="cover.png" alt="Thesis front cover" width="420">
+  </kbd>
+</p>
+
 This repository contains the complete LaTeX source, figures, and supporting files for my PhD thesis.
 
 > **Setup note:** This project is intended to be compiled on **Overleaf** (the source works as-is there).
@@ -14,7 +20,15 @@ This repository contains the complete LaTeX source, figures, and supporting file
 
 ## Download the compiled PDF
 
-- **Latest release page:** https://github.com/EvoLandEco/Thesis/releases/latest  
+- **Latest release page:** https://github.com/EvoLandEco/Thesis/releases/latest
+
+---
+
+## Supplementary materials
+
+Additional files that are too large or too numerous for the main thesis repository (e.g., supplementary figures, animations, and supporting materials) are maintained in the companion repository:
+
+- **EvoLandEco/Thesis-Appendix:** https://github.com/EvoLandEco/Thesis-Appendix/
 
 ---
 
@@ -23,7 +37,7 @@ This repository contains the complete LaTeX source, figures, and supporting file
 ### Option A: Upload a ZIP
 1. Click **Code → Download ZIP** on GitHub.
 2. In Overleaf, create a new project and **Upload Project** (ZIP).
-3. Set the **Main file** to the repository entry point (e.g., `main.tex` / `dissertation.tex`).
+3. Set the **Main file** to `dissertation.tex`.
 
 ### Option B: GitHub–Overleaf sync
 If you use Overleaf’s GitHub integration, link this repository to your Overleaf project and keep the repo as the single source of truth.
@@ -32,17 +46,31 @@ If you use Overleaf’s GitHub integration, link this repository to your Overlea
 
 ## Repository structure
 
-- `dissertation.tex` — main entry file
-- `acks/` — acknowledgements sources
-- `conclusion/` — conclusion sources
-- `summary/` — summary sources
-- `title/` — title page sources
-- `cv/` — CV sources
-- `publications/` — publication sources
-- `introduction/` — introduction (syntroduction) sources
-- `chapter*/` — chapter sources
-- `dissertation.cls` — custom class/style
-- `dissertation.bib` — references
+- `dissertation.tex` — main entry file  
+- `acks/` — acknowledgements sources  
+- `conclusion/` — conclusion sources  
+- `summary/` — summary sources  
+- `title/` — title page sources (and cover preview image)  
+- `cv/` — CV sources  
+- `publications/` — publication sources  
+- `introduction/` — introduction sources  
+- `chapter*/` — chapter sources  
+- `dissertation.cls` — custom class/style  
+- `dissertation.bib` — references  
+
+---
+
+## Publications
+
+- **Qin, T.**, Valente, L.†, & Etienne, R.† (2025). *Impact of evolutionary relatedness on species diversification and tree shape.* **Journal of Theoretical Biology**.  
+  �� Awarded the inaugural *Denise Kirschner Best Student Paper Prize* (2025).  
+  † Joint senior authors.
+
+- **Qin, T.**, van Benthem, K., Valente, L.†, & Etienne, R.† (2025). *Parameter estimation from phylogenetic trees using neural networks and ensemble learning.* **Systematic Biology**.  
+  † Joint senior authors.
+
+- **Qin, T.**, van Benthem, K., Valente, L.†, & Etienne, R.†. *Identifying evolutionary relatedness effects on diversification from phylogenies using neural networks.* Manuscript in preparation.  
+  † Joint senior authors.
 
 ---
 
@@ -51,7 +79,7 @@ If you use Overleaf’s GitHub integration, link this repository to your Overlea
 I use **GitHub Releases** as the canonical changelog and distribution channel.
 
 - **Changelog (latest):** https://github.com/EvoLandEco/Thesis/releases/latest  
-- **All releases:** https://github.com/EvoLandEco/Thesis/releases
+- **All releases:** https://github.com/EvoLandEco/Thesis/releases  
 
 ---
 
@@ -71,5 +99,3 @@ I use **GitHub Releases** as the canonical changelog and distribution channel.
 ## License
 
 - Code and build/config files: see [LICENSE](LICENSE)
-
----
