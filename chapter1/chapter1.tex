@@ -30,7 +30,7 @@ The potentially powerful phylogenetic proxies for ecological interactions, howev
 
 While these concerns indicate that support for a role of \acrshort{er} on diversification is not clear, this may be because we do not know what signal \acrshort{er} is expected to leave in phylogenetic trees and extant communities \citep{rabosky_heritability_2009,ricklefs_evolutionary_2010,wiens_causes_2011}. Most studies have only considered diversity-dependence within clades of phylogenetically closely related species \citep{rabosky_equilibrium_2010,etienne_diversity-dependence_2012,foote_diversity-dependent_2018}, whereas only a few have considered diversity-dependence between clades of phylogenetically disparate species \citep{pires_interactions_2017}. A recent study \citep{etienne_phylogenetic_2023} using empirical data on island frogs found that a model with diversity-dependence between closely related species was preferred over one with diversity-dependence also occurring with more distantly related species, indicating that interactions of species with close relatives, but not with distant relatives, negatively affect colonization and diversification. This suggests an important role of \acrshort{er} in species diversification and the need for distinguishing between different levels of \acrshort{er} and scales at which it may have an effect on diversification. However, none of the above-mentioned studies has investigated whether \acrshort{er} directly impacts macro-evolutionary dynamics \citep{rillo_diversity-dependent_2022}. 
 
-Assuming \acrshort{er} affects diversification rates, what signatures does this effect leave in phylogenetic trees of communities? What emergent phylogenetic patterns are expected if species facilitate or compete more strongly with their close relatives? Can phylogenetic limits imposed by \acrshort{er} be differentiated from those imposed by \acrshort{sr}? And how do \acrshort{er} effects operating at the whole clade versus more lineage-specific scales affect phylogenies? To address these questions, here we present a new phylogenetic birth-death simulation model that incorporates both \acrshort{sr} and \acrshort{er}. The model allows for positive, neutral, or negative effects of both \acrshort{sr} and \acrshort{er} on diversification rates. We measure \acrshort{er} using three different mechanisms of how \acrshort{er} can affect diversification (see Methods) each considering a different scale of the effect of \acrshort{er}. We use the new model to simulate communities under a stochastic branching process where speciation rate can vary according to \acrshort{sr} and \acrshort{er}, and analyze whether \acrshort{er} leaves a signature on the diversification dynamics by looking at various tree summary statistics. We aim to provide the first expectations for the effects of these processes on phylogenetic trees by developing a simple simulation model where the effects of \acrshort{sr} and \acrshort{er} can be studied independently or in combination. While inferring parameters from empirical datasets is beyond the scope of this study, our model presents a tool that can be used in future simulation-based parameter estimation methods, for example for generating training datasets for neural network models. Our R package ``evesim" on GitHub contains functions to generate simulated phylogenies using our model \citep{hildenbrandt_evesim_2024}.
+Assuming \acrshort{er} affects diversification rates, what signatures does this effect leave in phylogenetic trees of communities? What emergent phylogenetic patterns are expected if species facilitate or compete more strongly with their close relatives? Can phylogenetic limits imposed by \acrshort{er} be differentiated from those imposed by \acrshort{sr}? And how do \acrshort{er} effects operating at the whole clade versus more lineage-specific scales affect phylogenies? To address these questions, here we present a new phylogenetic birth-death simulation model that incorporates both \acrshort{sr} and \acrshort{er}. The model allows for positive, neutral, or negative effects of both \acrshort{sr} and \acrshort{er} on diversification rates. We measure \acrshort{er} using three different mechanisms of how \acrshort{er} can affect diversification (see Methods) each considering a different scale of the effect of \acrshort{er}. We use the new model to simulate communities under a stochastic branching process where speciation rate can vary according to \acrshort{sr} and \acrshort{er}, and analyze whether \acrshort{er} leaves a signature on the diversification dynamics by looking at various tree summary statistics. We aim to provide the first expectations for the effects of these processes on phylogenetic trees by developing a simple simulation model where the effects of \acrshort{sr} and \acrshort{er} can be studied independently or in combination. While inferring parameters from empirical datasets is beyond the scope of this study, our model presents a tool that can be used in future simulation-based parameter estimation methods, for example for generating training datasets for neural network models. Our R package \texttt{evesim} on GitHub contains functions to generate simulated phylogenies using our model \citep{hildenbrandt_evesim_2024}.
 
 \section{Methods}
 \label{ch1::sec::methods}
@@ -81,8 +81,7 @@ We ran a series of simulations of the model under different scenarios in order t
 
 Two types of events can occur: speciation and extinction. When a speciation event happens, a lineage at the tip of the tree bifurcates into two lineages. When an extinction event happens, a species is marked as extinct. The simulation lasts for a predetermined time, which equals the crown age of the final phylogeny. A successful simulation is conditional on survival of both crown lineages; the simulation will start over if one of the crown lineages goes extinct entirely (see \autoref{fig:figure2} for the illustration of the simulation). Our GitHub repository \texttt{eve} \citep{qin_eve_2023} contains the codebase for the current study.
 
-\begin{table}
-    \centering      
+\begin{table}   
         \caption{Parameters used in the simulations}
         \begin{tabular}{@{}ll@{}}
         \toprule
@@ -103,7 +102,7 @@ We deliberately chose a relatively simple model to assess the effect of \acrshor
 
 \subsection{Data Analysis}
 \label{ch1::sec::methods::data_analysis}
-Raw output from the simulations was processed using the ``eve" package into data compatible with statistics functions in other R packages. For each parameter set, the ``treestats" \citep{janzen_phylogenetic_2024} and ``eve" packages were used to calculate summary statistics for all extant trees, excluding those with only two extant lineages. The statistics chosen were the following: the \acrshort{jone} balance index \citep{lemant_robust_2022}, the Gamma statistic \citep{pybus_testing_2000}, mean branch length, mean pairwise distance (\acrshort{mpd}) \citep{webb_phylogenies_2002} and the Rogers J index of imbalance (\acrshort{rogers} hereafter) \citep{rogers_central_1996}. 
+Raw output from the simulations was processed using the \texttt{eve} package into data compatible with statistics functions in other R packages. For each parameter set, the \texttt{treestats} \citep{janzen_phylogenetic_2024} and \texttt{eve} packages were used to calculate summary statistics for all extant trees, excluding those with only two extant lineages. The statistics chosen were the following: the \acrshort{jone} balance index \citep{lemant_robust_2022}, the Gamma statistic \citep{pybus_testing_2000}, mean branch length, mean pairwise distance (\acrshort{mpd}) \citep{webb_phylogenies_2002} and the Rogers J index of imbalance (\acrshort{rogers} hereafter) \citep{rogers_central_1996}. 
 
 The effects of \acrshort{sr} and \acrshort{er} were measured by the values of $\beta_N$ and $\beta_\varPhi$, respectively. The effects of the scale at which the effect operates, from whole-clade, to species-specific were determined by the \acrshort{er} mechanism (one of the three \acrshort{er} measures: \acrshort{pd} (whole-clade), \acrshort{ed} (intermediate) and \acrshort{nnd} (species-specific).
 
@@ -175,9 +174,9 @@ d_{\mathrm{M}}(\boldsymbol{v}_{i,k}) = \sqrt{(\boldsymbol{v}_{i,k} - \bar{\bolds
 \end{equation}
 where $\boldsymbol{v}_{i,k}$ is the index vector for the $i$-th tree of the $k$-th set. $\bar{\boldsymbol{v}}_k$ comprises five mean values of each element respectively in the index vectors in the $k$-th set, $\top$ denotes the vector transpose, $\boldsymbol{S}$ is the covariance matrix of these vectors and $\boldsymbol{S}^{-1}$ denotes the inverse of $\boldsymbol{S}$.
 
-For each representative tree (i.e. the tree with the smallest Mahalanobis distance to the other trees), we mapped the historical speciation rates onto the tree using the ``eve" package. The variation of speciation rates along tree lineages is represented by a continuous color scale. The actual rate values corresponding to colors were calculated as mean speciation rates (mean value of speciation rates at the beginning and at the end) of the time frames between evolutionary events in a simulation.  
+For each representative tree (i.e. the tree with the smallest Mahalanobis distance to the other trees), we mapped the historical speciation rates onto the tree using the \texttt{eve} package (see \autoref{ch1::sec::appendix::algorithm} for details). The variation of speciation rates along tree lineages is represented by a continuous color scale. The actual rate values corresponding to colors were calculated as mean speciation rates (mean value of speciation rates at the beginning and at the end) of the time frames between evolutionary events in a simulation.  
 
-LTT plots were generated using the ``eve" package for each tree set by summarizing all the trees in the set and then displaying the mean LTT curve along with shading representing the confidence interval of the set. The LTT plots were based on extant species only.
+LTT plots were generated using the \texttt{eve} package for each tree set by summarizing all the trees in the set and then displaying the mean LTT curve along with shading representing the confidence interval of the set. The LTT plots were based on extant species only.
 
 \section{Results}
 \label{ch1::sec::results}
@@ -278,9 +277,47 @@ In some real-world scenarios, it is possible that ER effects are so strong that 
 \label{ch1::sec::appendix::animation-main}
 Animated plots were generated to aid the explanation of model behaviors and phylogenetic patterns of the main simulation. The plots were named in a format of "parameter\_statistic.gif" where parameter refers to the changing parameter in the animation and statistic refers to the summary statistic the plot shows. For example, "beta\_n\_Gamma.gif" is an animation showing the Gamma statistics among different parameter settings and transitioning in $\beta_N$.
 
+The full set of animation files is available at: 
+
+\url{https://github.com/EvoLandEco/Thesis-Appendix/}
+
+\subsection{Rate-Mapping Algorithm for Visualization}
+\label{ch1::sec::appendix::algorithm}
+\begin{fancybox}{Algorithm: Map lineage histories to colored phylogeny segments}{%
+\begin{algorithmic}[1]
+\Require Rooted phylogeny $\mathcal{T}$ with branch lengths; discrete-time history $H(t,\ell)$
+\Ensure Segment table $S$ with rows $(x,y)\to(x',y')$ and value $v$
+
+\State Compute phylogram coordinates $(x_u,y_u)$ for all nodes/tips
+\State $S \gets \emptyset$
+
+\Procedure{Traverse}{$u$}
+  \ForAll{child edges $u\to c$ with length $L$}
+    \State Choose representative descendant tip $r \in \mathrm{subtree}(c)$
+    \State $H_r \gets H(\cdot,r)$ restricted to $[x_u,\;x_u+L]$ (snap to grid if needed)
+    \For{$i = 1$ to $|H_r|-1$}
+      \State $t_0 \gets H_r.time[i]$, $t_1 \gets H_r.time[i+1]$
+      \State $v \gets \frac{H_r.val[i] + H_r.val[i+1]}{2}$
+      \State Append $(t_0,y_c)\to(t_1,y_c)$ with value $v$ to $S$
+    \EndFor
+    \State Append $(x_u,y_u)\to(x_u,y_c)$ with value $H_r.val[1]$ to $S$
+    \If{$c$ is internal}
+      \State \Call{Traverse}{$c$}
+    \EndIf
+  \EndFor
+\EndProcedure
+
+\State \Call{Traverse}{root($\mathcal{T}$)}
+\State \Return $S$
+\end{algorithmic}
+}
+\end{fancybox}
+
 \subsection{Heatmaps}
 \label{ch1::sec::appendix::heatmap}
 Heatmaps were plotted to visualize the correlation matrix of a number of tree statistics under different \acrshort{er} scenarios. A representative tree was selected based on the heatmaps, using the statistics that are less correlated and more evenly spaced on the heatmap. There are three heatmaps, each presenting one scenario.
+
+\emph{(Figures on next page.)}
 
 \begin{figure}[ht]
     \centering
@@ -316,6 +353,10 @@ Heatmaps were plotted to visualize the correlation matrix of a number of tree st
 \subsection{Tree Statistics and LTT Plots with Representative Trees}
 \label{ch1::sec::appendix::treestats}
 Tree statistics and LTT plots with representative trees were plotted for all the parameter settings of the main simulation. The plots were named in a format of "$\lambda_0$\_$\mu_0$\_$\beta_N$.png". For example, "0.6\_0\_0.png" presents the results under the parameter setting $\lambda_0$ = 0.6, $\mu_0$ = 0 and $\beta_N$ = 0.
+
+The full set of figures is available at: 
+
+\url{https://github.com/EvoLandEco/Thesis-Appendix/}
 
 \subsection{Effects of Intrinsic Speciation and Extinction Rates}
 \label{ch1::sec::appendix::effect-lambda-mu}

@@ -761,3 +761,10 @@
 
 \newcommand{\norm}[1]{\lvert #1 \rvert}
 \def\Plus{\texttt{+}}
+
+% For algorithms
+\RequirePackage{algorithmicx}
+\RequirePackage{algpseudocode}
+
+% Better line breaking for URLs
+\RequirePackage{xurl}

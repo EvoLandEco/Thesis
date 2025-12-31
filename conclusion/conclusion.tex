@@ -7,16 +7,11 @@ Taken together, these chapters support three overarching conclusions about diver
 
 \begin{fancyenumerate}
     \item! \textbf{Evolutionary relatedness offers a principled extension of ecological limits models, but its effects are scale-dependent.}
-    Relatedness can modulate interactions among lineages in ways that are not captured by richness alone. Yet ``relatedness dependence'' is not a single hypothesis: lineage-specific and clade-wide effects generate qualitatively different macroevolutionary patterns, and they should be treated as distinct modelling assumptions rather than interchangeable parameterizations.
+    Relatedness can modulate interactions among lineages in ways that are not captured by richness alone. Yet ``relatedness dependence'' is not a single hypothesis: lineage-specific and clade-wide effects generate qualitatively different macroevolutionary patterns, and they should be treated as distinct modeling assumptions rather than interchangeable parameterizations.
 
     \item! \textbf{Inference is constrained less by the choice of estimator than by the information content of trees.}
-    Likelihood-based estimators and neural networks can both perform well when the process leaves a clear imprint, and both fail when the imprint is weak. Tree size and effect strength set hard limits: when multiple mechanisms yield nearly indistinguishable trees, improved algorithms cannot fully compensate for missing information.
+    Likelihood-based estimators and neural networks can both perform well when the process potentially leaves a clear imprint, and both fail when the imprint is weak. Tree size and effect strength set hard limits: when multiple mechanisms yield nearly indistinguishable trees, improvement on the estimators may not fully compensate for missing information.
 
     \item! \textbf{Model flexibility comes with an identifiability cost that manifests as conservative, mean-regressing predictions.}
     As models become more richly parameterized, the mapping from parameters and scenarios to observed tree patterns flattens over much of parameter space. This produces systematic shrinkage in regression and asymmetric confusion in classification, providing a practical warning sign: apparent predictive accuracy can hide broad non-identifiability.
 \end{fancyenumerate}
-
-These conclusions have several practical implications. First, when fitting diversification models that include feedbacks of diversity on rates, it is essential to articulate which aspect of diversity is hypothesized to matter and at what phylogenetic scale. Second, performance benchmarks for inference methods should not only report point accuracy but also evaluate calibration, asymmetries in misclassification, and the dependence of errors on tree size and parameter regimes. Third, where identifiability is weak, meaningful progress will likely require additional sources of information or constraints beyond extant-tree shape alone---for example, fossil occurrence data, trait-dependent processes measured independently, spatial structure, or replicated phylogenies across clades.
-
-More broadly, this thesis emphasizes a simple but consequential point: phylogenies are rich historical objects, yet they are also compressions of the underlying process. Understanding what is lost in that compression---and where recoverable signal remains---is as important as developing new estimators. By combining mechanistic modelling with systematic evaluation of inference performance, the work here clarifies both the promise and the limits of learning diversification dynamics from extant trees, and it provides guidance for when relatedness-dependent ecological limits can be inferred with confidence and when they cannot.
-

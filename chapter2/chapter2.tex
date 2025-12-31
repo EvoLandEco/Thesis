@@ -27,19 +27,19 @@ Owing to the rapid development of both hardware capability and deep learning alg
 
 In this study, we explore the potential of neural networks in research on species diversification using phylogenies. We first develop various neural network architectures and protocols for transforming phylogenetic trees and branching times into compatible formats. In addition to new neural networks presented here, for comparison with existing methods, we also investigate a one-dimensional convolutional neural network architecture described by \citet{voznica_deep_2022, lajaaiti_comparison_2023}. We then investigate predictive performance of underlying parameters on simulated data for ensemble learning strategies. These strategies combine different neural network classes to maximize data utilization and enhance performance. We also assess the determinants of estimation accuracy and robustness for both neural network and MLE methods under various diversification scenarios. Finally, we implement our trained neural networks on empirical phylogenetic datasets and compare their estimations to those of MLE.
 
-Our analyses encompass three different diversification scenarios for which likelihood-based inference approaches already exist: a constant-rate birth-death (BD) scenario, with constant speciation and extinction rates over time \citep{stadler_simulating_2011}; a diversity-dependent diversification (DDD) scenario, where the number of species in a clade negatively affects the speciation rate \citep{etienne_diversity-dependence_2012}; and a protracted birth-death (PBD) scenario, where speciation takes time and does not always proceed to completion \citep{rosindell_protracted_2010}. Applying our new methodology to phylogenetic trees simulated under a broad range of the parameter space, our findings indicate that neural network approaches are as effective, if not more so, than MLE in recovering parameters from phylogenetic data simulated under these stochastic processes. Trained neural networks can be conveniently applied to empirical trees for parameter estimation. To facilitate this, we present a new R package, "EvoNN," capable of performing such analyses based on phylogenetic trees (empirical or simulated) supplied by the user \citep{qin_evonn_2024}.
+Our analyses encompass three different diversification scenarios for which likelihood-based inference approaches already exist: a constant-rate birth-death (BD) scenario, with constant speciation and extinction rates over time \citep{stadler_simulating_2011}; a diversity-dependent diversification (DDD) scenario, where the number of species in a clade negatively affects the speciation rate \citep{etienne_diversity-dependence_2012}; and a protracted birth-death (PBD) scenario, where speciation takes time and does not always proceed to completion \citep{rosindell_protracted_2010}. Applying our new methodology to phylogenetic trees simulated under a broad range of the parameter space, our findings indicate that neural network approaches are as effective, if not more so, than MLE in recovering parameters from phylogenetic data simulated under these stochastic processes. Trained neural networks can be conveniently applied to empirical trees for parameter estimation. To facilitate this, we present a new R package, \texttt{EvoNN}, capable of performing such analyses based on phylogenetic trees (empirical or simulated) supplied by the user \citep{qin_evonn_2024}.
 
 \section{Methods}
 \label{ch2::sec::methods}
 \subsection{Software Environment and Computational Budget}
 \label{ch2::sec::methods::environment}
-We used a hybrid programming environment with PyTorch 1.12.1 \citep{prakash_pytorch_2021}, PyTorch Geometric 2.3.1 \citep{fey_fast_2019}, Python 3.7.1 \citep{python_python_2021}, CUDA 12.2.2 \citep{luebke_cuda_2008} and R 4.2.1 \citep{r_core_team_r_2025}. Simulations, data transformation, and maximum likelihood estimation were handled through parallel CPU computations on the Hábrók high-performance computing cluster of the University of Groningen. The total computational budget for these processes was approximately 3000 hours (used CPU time). Our neural networks were trained, optimized and evaluated on the NVIDIA A100 and V100 tensor core GPUs of the Hábrók cluster. The estimated computational budget was 1500 hours (used GPU time, excluding CPU time for dataset loading and saving). We implemented a user-friendly illustrative tool to estimate parameters from phylogenetic trees using pretrained neural networks from this study in the new R package "evoNN". 
+We used a hybrid programming environment with PyTorch 1.12.1 \citep{prakash_pytorch_2021}, PyTorch Geometric 2.3.1 \citep{fey_fast_2019}, Python 3.7.1 \citep{python_python_2021}, CUDA 12.2.2 \citep{luebke_cuda_2008} and R 4.2.1 \citep{r_core_team_r_2025}. Simulations, data transformation, and maximum likelihood estimation were handled through parallel CPU computations on the Hábrók high-performance computing cluster of the University of Groningen. The total computational budget for these processes was approximately 3000 hours (used CPU time). Our neural networks were trained, optimized and evaluated on the NVIDIA A100 and V100 tensor core GPUs of the Hábrók cluster. The estimated computational budget was 1500 hours (used GPU time, excluding CPU time for dataset loading and saving). We implemented a user-friendly illustrative tool to estimate parameters from phylogenetic trees using pretrained neural networks from this study in the new R package \texttt{EvoNN}. 
 
 \subsection{Simulation Approaches}
 \label{ch2::sec::methods::simulation}
 To train the neural networks, we simulated phylogenetic trees using different functions from different R packages. For each simulated dataset we kept trees with only extant lineages, mimicking reconstructed phylogenies. The settings for the parameters used to simulate the trees were selected to limit the maximum total number of nodes (including root, internal and tip nodes, here and after, we always refer to the total number of nodes) for the trees in each dataset. After simulation, we further filtered out all trees containing more than 3000 nodes to avoid the creation of excessively large matrices that could deplete the available memory space allocated to the GPUs during the GNN training process. Such trees are uncommon under the settings we used -- typically fewer than 5 trees with more than 3000 nodes (\sim 1500 tips) are present within each set of phylogenies we acquired from simulation. We also filtered out all trees containing less than 5 nodes (3 tips) to ensure successful data transformation and summary statistic computation. Small trees inherently carry limited informational content. The exclusion of these trees is unlikely to impact performance of the neural networks on the remaining trees (typically fewer than 100 out of 100,000 trees with less than 5 nodes were removed for each parameter setting).
 
-To consider different diversification processes, we simulated 100,000 random birth-death trees (BD phylogenies), 100,000 diversity-dependent trees (DDD phylogenies) and 100,000 protracted birth-death trees (PBD phylogenies). The amount of simulated data is bounded by the resource and time limits of the computing cluster. All trees have an identical crown age of 10 time units ($t = 10$) to reduce both the complexity of the data and the computational burden. For simulating BD trees, we used the "rlineage" function from R package "ape" \citep{paradis_ape_2019} to generate complete trees and then pruned all the extinct lineages; for DDD trees, we used the "dd\_sim" function from R package "DDD" \citep{etienne_diversity-dependence_2012}; for PBD trees we used the "pbd\_sim" function from our R package "eveGNN" (a codebase of phylogeny simulation, data transformation, neural network training and MLE computation for our study), which is similar to the function with the same name in the original R package "PBD"  \citep{etienne_prolonging_2012}, but only outputs necessary data for our study.
+To consider different diversification processes, we simulated 100,000 random birth-death trees (BD phylogenies), 100,000 diversity-dependent trees (DDD phylogenies) and 100,000 protracted birth-death trees (PBD phylogenies). The amount of simulated data is bounded by the resource and time limits of the computing cluster. All trees have an identical crown age of 10 time units ($t = 10$) to reduce both the complexity of the data and the computational burden. For simulating BD trees, we used the \texttt{rlineage} function from R package \texttt{ape} \citep{paradis_ape_2019} to generate complete trees and then pruned all the extinct lineages; for DDD trees, we used the \texttt{dd\_sim} function from R package \texttt{DDD} \citep{etienne_diversity-dependence_2012}; for PBD trees we used the \texttt{pbd\_sim} function from our R package \texttt{eveGNN} (a codebase of phylogeny simulation, data transformation, neural network training and MLE computation for our study), which is similar to the function with the same name in the original R package \texttt{PBD} \citep{etienne_prolonging_2012}, but only outputs necessary data for our study.
 
 In our simulation approach we randomly sampled the (log) parameters required for each scenario (BD, DDD and PBD) from uniform distributions. The upper bound for the extinction rates were proportionally dependent on the drawn speciation rate to avoid cases where extinction rates could be larger than speciation rates, because in such cases the whole tree likely goes extinct. Furthermore, to prevent a huge number of events, which would deplete available computational time and memory, we also imposed an overall cap of 1.5 on the extinction rates. 
 
@@ -69,7 +69,9 @@ Therefore, our data comprises three major components: the phylogenetic trees, th
 
 \begin{figure}
     \centering
-    \includegraphics{chapter2/figure2.pdf}
+    \resizebox{1.06\textwidth}{!}{
+        \includegraphics{chapter2/figure2.pdf}
+    }
     \caption{Illustration of data transformation between a "phylo" object and its graph representation. The left panel shows a visualization of a "phylo" object. The blue circle represents the root node, orange circles represent the internal nodes and green circles represent the tip nodes. Arrows represent directed edges between each pair of the nodes. The right panel shows the transformed graph data structure. The adjacency list is denoted as $\mathcal{E}$. Each row of the adjacency list represents one edge, the first column represents the starting node and the second column represents the end node. Note that the adjacency list is transposed (in the example into $\mathcal{E}^{2 \times 8}$) after converting to a tensor. The node feature matrix is denoted as $\mathcal{X}$. Each row of the node feature matrix represents the features contained in one node, the first column represents the distance from the node to its direct ancestor node, the second and the third columns represent the distances from the node to its two descendants. In the node feature matrix, the distances from a node to non-existing nodes (e.g. the tip nodes have no descendants, and the root node has no ancestor) are represented by zeros. The node and edge labels before the colons (including the colons) are placed here for visual assistance. After transformation, we use graph-level attributes $\mathcal{Y}$ to store the parameters used to generate the "phylo" object. The node labels are given by $n_1, n_2, n_3, \ldots, n_9$, the edge labels are given by $e_1, e_2, e_3, \ldots, e_8$, the edge lengths are given by $\norm{e_1}, \norm{e_2}, \norm{e_3}, \ldots, \norm{e_8}$. The generating parameters are given by a vector $[y_1, y_2, \ldots, y_n]$ where $n$ is the number of parameters}
     \label{fig::protocol}
 \end{figure}
@@ -90,8 +92,9 @@ See \autoref{fig::ensemble} for a simplified illustration of the ensemble learni
         \includegraphics{chapter2/figure3.pdf}
     }
     \medskip
-    \emph{(Caption on next page.)}
+    \emph{\ (Caption on next page.)}
 \end{figure}
+
 \begin{figure}
     \centering
     \caption{\emph{(Figure on previous page.)} Illustration of the ensemble learning strategies to combine the graph neural network (GNN), the dense neural network (DNN) and the long short-term memory recurrent neural network (LSTM). The neural networks are largely simplified. With boosting, GNN, DNN and LSTM were trained sequentially to iteratively correct residuals. For example, DNN is trained to predict the residuals of GNN predictions. Subsequently, LSTM is trained to predict the residuals of the residuals after DNN corrected the GNN predictions. The final prediction comes from the initial prediction by GNN minus two learned residual terms by DNN and LSTM. With bagging, we trained GNN, DNN and LSTM independently, translated their original outputs to parameter predictions and then aggregated the predictions. With stacking, we trained GNN, DNN and LSTM simultaneously but without readout. We directly concatenated the outputs from GNN, DNN and LSTM and then used a meta-learner to make predictions from the outputs. With bagging, we trained GNN, DNN and LSTM independently ("GNN", "DNN" and "LSTM" blocks of boxes), translated their outputs to parameter predictions through their own readout layers (three "readout" boxes next to the neural networks and three "pred" boxes next to the readout layers) and then aggregated the predictions (red ball "A"). With stacking, we trained GNN, DNN and LSTM simultaneously ("GNN", "DNN" and "LSTM" blocks of boxes) but without their own readout layers. We combined the features from DNN, LSTM and GNN and fed to a meta-learner ("meta-learner") comprising linear neural network layers to output parameter predictions. With boosting, there can be different pathways. In our illustration, GNN, DNN and LSTM were trained sequentially to iteratively correct residuals. First, the GNN is trained from the graphs to make the initial predictions (see "GNN", "readout" and then "pred0") and from predicted and ground truth values of the parameters we computed the residuals ("res1"); second, the DNN is trained to predict these residuals from the summary statistics (see "DNN", "readout" and then "pred-res1"), learning to correct the GNN's errors；lastly, the LSTM is trained to predict the residuals of the residuals (see "LSTM", "readout" and then "pred-res2"), which is the initial predictions minus the predicted residuals by the DNN, from branching times, to further improve the predictive accuracy. Finally, we subtracted the two residual terms from the initial predictions (red ball "S") to make the corrected predictions. See \autoref{appendix::ensemble} for a detailed explanation.}
@@ -158,7 +161,7 @@ We used the same bootstrapping method described before to quantify the uncertain
 
 We applied this uncertainty computation to a selected set of empirical phylogenies from the Condamine dataset \citep{condamine_assessing_2019} under the DDD scenario (see \autoref{appendix::uncertainty} for details). The criteria for selection were phylogenies with more than 300 and less than 1000 nodes, and maximum likelihood estimates (MLE) of $K$ (carrying capacity) being less than 1000. The distributions of MLE and neural network estimates from the bootstrapped phylogenies was compared to the original MLE and neural network estimates from empirical phylogenies. For each set of parameters estimated from empirical phylogenies, we bootstrapped 1000 simulated phylogenies.
 
-Our R package "EvoNN" \citep{qin_evonn_2024} provides functions to perform the uncertainty (bootstrap) analyses.
+Our R package \texttt{EvoNN} \citep{qin_evonn_2024} provides functions to perform the uncertainty (bootstrap) analyses.
 
 \subsection{Supplementary Studies}
 \label{ch2::sec::results::supplementary}
@@ -364,7 +367,7 @@ In conclusion, when applied with caution, we expect that neural network methods 
   {}                           % before-code
 \section{Appendix}
 \setcounter{subsection}{0}
-\subsection{Protocol Transforming Phylogenies for Graph Neural Network}
+\subsection{Protocol Transforming Phylogenies}
 \label{appendix::data_transform::phylo_gnn}
 Phylogenetic trees are usually stored in the "phylo" data format in R. This data format is not directly compatible with GNN implementations. To facilitate graph convolutional operations, we transformed phylogeny from a "phylo" object into three major components: adjacency list, node feature matrix and graph attributes (see \autoref{fig::protocol}). The adjacency list contains information on the connectivity between nodes and tips, the node feature matrix contains distances between nodes and tips, and the graph-level attributes include the ground truth model parameters used to generate the phylogenies. These components are stored in separate tensors. In machine learning, a tensor is a mathematical object that generalizes scalars, vectors, and matrices to higher dimensions, allowing complex operations to be performed efficiently on multi-dimensional arrays. 
 
@@ -388,11 +391,11 @@ We output the node feature matrix of each tree as the node feature matrix $\math
 \label{appendix::data_transform::phylo_gnn::graph_attr}
 We store all the parameters used to simulate a tree (ground truth values) in the graph-level attributes $\mathcal{Y}$. These can have arbitrary length, which should be consistent with the number of the parameters to be estimated (the three diversification scenarios, BD, DDD and PBD, have different number of parameters). We store graph-level attributes as a "torch.float" floating point type tensor with length of the number of parameters we want to predict for each type of the phylogenetic tree. In PyTorch Geometric, graph-level attributes can be named as "data.y". The graph-level attributes are used as training targets to compute loss (see \autoref{appendixa::total_loss} for the definition of loss).
 
-\subsection{Protocol Transforming Summary Statistics for Dense Neural Network}
+\subsection{Protocol Transforming Summary Statistics}
 \label{sec::methods::data_transform::stats_dnn}
 The summary statistics of a phylogeny are represented by a 1D vector, so the protocol for DNN is straightforward: we convert the vector into a tensor containing floating type data, with the shape [num\_stats], where "num\_stats" denotes the total number of statistics. This tensor has only one dimension. This conversion guarantees that each tensor is associated with its respective tree, with all contained statistics maintaining their original order. Within the PyTorch Geometric framework, these statistics are encapsulated as "data.stats" for each tree. When using DNN alone to estimate parameters from the summary statistics, the ground truth values of the parameters of the trees are stored in the same way as the graph-level attributes, as model training targets. When using DNN with other neural networks (e.g. in stacking and boosting strategies), they share the same ground truth values which are the graph-level attributes.
 
-\subsection{Protocol Transforming Branching Times for Recurrent Neural Network}
+\subsection{Protocol Transforming Branching Times}
 \label{sec::methods::data_transform::brts_lstm}
 To address the varying lengths in branching times across different phylogenetic trees, we standardize these sequences by padding them to match the length of the longest branching time sequence. This is achieved by appending zeros to the shorter sequences until they match the predefined maximum length. The padded sequences are stored in tensors containing floating type data. As the original branching times do not contain zero values, this padding strategy allows us to distinguish between original data and padding. Consequently, we can pass masks of the sequences to the LSTM, which indicates the positions of the paddings, making LSTM concentrate only on the informative portions of the sequences, thereby optimizing its performance. When using LSTM alone to estimate parameters from the branching times, the ground truth values of the parameters of the trees are stored in the same way as the graph-level attributes, as model training targets. When using LSTM with other neural networks (e.g. in stacking and boosting strategies), they share the same ground truth values which are the graph-level attributes.
 
@@ -449,7 +452,7 @@ DNN's major component is a stack comprises 5 linear layers ("DNN stack" in \auto
 
 LSTM's major component is a stack of 5 LSTM recurrent neural network layers ("LSTM stack" in \autoref{fig::architecture}-B). The final hidden state from the last recurrent neural network layer is processed by a linear layer with $\rho_{\text{dropout}}=0.5$ accompanied by a GELU ("linear" in \autoref{fig::architecture}-B), then passed to a single linear readout layer ("readout" in \autoref{fig::architecture}-B) that outputs $n$ predicted parameters ("pred" in \autoref{fig::architecture}-B). According to our experiments, stacking more recurrent neural network layers provides no substantial improvement to the performance.
 
-The hyper-parameters not mentioned are set by their default values. The dimensions of the boxes do not map to any hyper-parameter settings, they are set for the best visual effect. The values below the boxes indicate their respective number of hidden neurons, their input and output neurons are not shown in the figure, they can be found in the configuration files in our GitHub repository "eveGNN" \citep{qin_evegnn_2023}.
+The hyper-parameters not mentioned are set by their default values. The dimensions of the boxes do not map to any hyper-parameter settings, they are set for the best visual effect. The values below the boxes indicate their respective number of hidden neurons, their input and output neurons are not shown in the figure, they can be found in the configuration files in our GitHub repository \texttt{eveGNN} \citep{qin_evegnn_2023}.
 
 \clearpage
 \subsection{Ensemble Learning}
@@ -491,7 +494,7 @@ Subplex was the fastest among the tested algorithms, Simplex and DEoptim were sl
     \label{fig::ddd_mle_optimizer_tree_size}
 \end{figure}
 
-With the Simplex optimizer, we also compared the estimates between using two integration methods: matrix exponentiation ("analytical") and numerical integrator ("odeint::runge\_kutta\_cash\_karp54"). To ensure that the MLE estimates shown in the figures are reliable, we always adopted the results of the numerical integrator and excluded the data points on which the discrepancy of estimates between two integration methods is larger than 10\% relatively. See
+With the Simplex optimizer, we also compared the estimates between using two integration methods: one is matrix exponentiation ("analytical") and the other is a numerical integrator ("odeint::runge\_kutta\_cash\_karp54"). To ensure that the MLE estimates shown in the figures are reliable, we always adopted the results of the numerical integrator and excluded the data points on which the discrepancy of estimates between two integration methods is larger than 10\% relatively. See
 
 \begin{table}[ht]
     \caption{The distribution of relative differences of estimated parameters between using matrix exponentiation ("analytical") and numerical integrator ("odeint::runge\_kutta\_cash\_karp54") with the Simplex optimizer. The "Case" column indicates the maximum-likelihood estimation scenarios, "Best" represents using true speciation rate, true extinction rate and $K = \infty$ as starting points, "Naive" represents using true speciation rate, true extinction rate and $K = 10000$ as starting points. The "Parameter" column indicates each of the estimated parameters, "$K$" is the carrying capacity, "$\lambda$" is the speciation rate and "$\mu$" is the extinction rate. The rest of the columns indicate the ranges of measured relative differences between estimates of the two integration methods. The percentages under these columns indicate the proportions of data having the relative discrepancies smaller than the values indicated by the column names.}
@@ -543,6 +546,8 @@ The rest of the figures of neural network estimation uncertainty on the empirica
     \resizebox{1.0\textwidth}{!}{
         \includegraphics{chapter2/ddd_robustness.png}
     }
+    \medskip
+    \emph{(Caption on next page.)}
 \end{center}
 \begin{figure}
     \centering
@@ -649,15 +654,6 @@ See the figures below for details.
 \begin{figure}[H]
     \centering
     \resizebox{1.0\textwidth}{!}{
-        \includegraphics{chapter2/ddd_plot_treesize_cnn1d2.png}
-    }
-    \caption{Prediction error of estimated parameters on trees of different sizes under a diversity-dependent diversification scenario. Compared to the original figure in the results section, the "Median" bagging approach panel is replaced with "CNN1D" established by \citet{voznica_deep_2022}.}
-    \label{fig::ddd_tree_size_cnn1d}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \resizebox{1.0\textwidth}{!}{
         \includegraphics{chapter2/ddd_plot_true_value_lambda_cnn1d2.png}
     }
     \caption{Prediction error of speciation rate plotted against true speciation rate under a diversity-dependent diversification scenario. Compared to the original figure in the results section, the "Median" bagging approach panel is replaced with "CNN1D" established by \citet{voznica_deep_2022}.}
@@ -692,6 +688,16 @@ See the figures below for details.
 \end{figure}
 
 \clearpage
+\begin{figure}[H]
+    \centering
+    \resizebox{1.0\textwidth}{!}{
+        \includegraphics{chapter2/ddd_plot_treesize_cnn1d2.png}
+    }
+    \caption{Prediction error of estimated parameters on trees of different sizes under a diversity-dependent diversification scenario. Compared to the original figure in the results section, the "Median" bagging approach panel is replaced with "CNN1D" established by \citet{voznica_deep_2022}.}
+    \label{fig::ddd_tree_size_cnn1d}
+\end{figure}
+
+\clearpage
 \subsection{Dataset Re-balancing}
 \label{appendix::rebalance}
 Birth-death processes without carrying capacity effect may have larger variance of tree size than the DDD trees. A skew in the frequency of tree size across datasets may appear that leads to a non-representative sample. 
@@ -700,6 +706,9 @@ To address this issue, we re-balanced the BD dataset by creating 10 bins, each d
 
 To compare with the original BD dataset, we trained neural networks on the re-balanced dataset, and validated neural network performance on an additional testing dataset (10,000 phylogenies simulated using the same parameter space). We computed MLE estimates on 2,000 randomly sampled phylogenies from the testing dataset. See \autoref{fig::bd_rebalance} for the results.
 
+\emph{(Figure on next page.)}
+
+\clearpage
 \begin{figure}[H]
     \centering
     \resizebox{0.8\textwidth}{!}{
@@ -714,20 +723,7 @@ To compare with the original BD dataset, we trained neural networks on the re-ba
 \label{appendix::generalization_full_tree}
 We simulated additional datasets to explore the generalization ability of the neural networks when facing data with true parameters completely outside the training space, as well as to compare neural network performances between extant and complete phylogenies. Each simulated dataset was divided into in-distribution and out-of-distribution datasets. We used the in-distribution datasets for training and testing and the out-of-distribution datasets for evaluating the generalization ability of the trained neural networks. Validating trained neural networks on the out-of-distribution datasets can provide insights into whether their performances are tailored to the peculiarities of the already seen data and whether they are robust to new, unseen phylogenies. For each tree we kept two versions: tree of all species (TAS) and tree of extant species (TES). See \autoref{table::simulated_trees_in_out_sample} for the parameter settings of the additional datasets, see \autoref{table::simulation_in_out_sample} for the criteria of in-distribution and out-of-distribution dataset separation. To conserve GPU memory, the parameter space for additional datasets was deliberately kept smaller, given that the TAS dataset inherently contains far more information than the TES.
 
-\begin{table}[ht]
-    \input{chapter2/simulation_in_out}
-    \caption{List of simulated tree datasets. The type column specifies which function is used to generate the trees. The age column specifies the crown age of the trees. The N column specifies the number of trees in the dataset. The rest of the columns specify the lower ($a$) and the upper ($b$) bounds of the initial parameters for the tree simulations, all the parameters are sampled from $U(a, b)$ except for $\lambda_1$ of the protracted birth-death scenario. $\lambda_1$ is computed as $\lambda_1 = 10^e$ where $e$ is sampled from $U(-3, 1)$. $U$ denotes uniform distribution. List A shows the parameter distributions of the birth-death trees and the diversity-dependent-diversification trees, $\lambda$: intrinsic speciation rate/birth rate; $\mu$: intrinsic extinction rate/death rate; $K$: carrying capacity. List B shows the parameter distributions of the protracted birth-death trees, $\lambda_1$: speciation-initiation rate of good species; $\lambda_2$: speciation-completion rate; $\lambda_3$: speciation-initiation rate of incipient species; $\mu_1$: extinction rate of good species; $\mu_2$: extinction rate of incipient species. $^*$In diversity-dependent-diversification simulations, the maximum extinction rate is capped at 1.5 if $0.9\lambda > 1.5$.}
-    \label{table::simulated_trees_in_out_sample}
-\end{table}
-
-\begin{table}[ht]
-    \centering
-    \input{chapter2/simulation_in_out_sample}
-    \caption{Criteria for in-distribution (in-sample) and out-of-distribution (out-of-sample) dataset separation. Trees generated from each model are separated into left out-of-sample group, in-sample group and right out-of-sample group, based on the parameter ranges. The Model column shows the model of a parameter; the Parameter column shows the corresponding parameter; the Left Out column shows the criteria for the left out-of-sample group; the In Sample column shows the criteria for the in-sample group; the Right Out column shows the criteria of the right out-of-sample group. $\lambda$: intrinsic speciation rate/birth rate; $\mu$: intrinsic extinction rate/death rate; $K$: carrying capacity. List B shows the parameter distributions of the protracted birth-death trees, $\lambda_1$: speciation-initiation rate of good species; $\lambda_2$: speciation-completion rate; $\lambda_3$: speciation-initiation rate of incipient species; $\mu_1$: extinction rate of good species; $\mu_2$: extinction rate of incipient species.}
-    \label{table::simulation_in_out_sample}
-\end{table}
-
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \resizebox{1.0\textwidth}{!}{
         \includegraphics{chapter2/differences_box.png}
@@ -735,6 +731,18 @@ We simulated additional datasets to explore the generalization ability of the ne
     \caption{Comparisons of relative differences (in percentage) between ground true and estimated parameter values. From top to bottom, the panels in each row present the relative differences of trees generated by a specific diversification process. From left to right, the panels in each column present the relative differences of a specific parameter used when simulating the trees. Within each panel, each box represents a specific method for parameter estimation on a specific data set (as described in x-axis labels). Red boxes represent parameter estimation by using only graph neural network (GNN) on the in-sample datasets (Test in figure), yellow boxes represent the non-optimal maximum likelihood estimation (MLE) method on the complete datasets (direct outputs from simulation, without any separation), green boxes represent the optimal MLE method on the complete datasets, purple boxes represent parameter estimation by GNN on the out-of-sample datasets. BD - birth-death trees; DDD - diversity-dependent-diversification trees; PBD - protracted birth-death trees. $\lambda$ - birth rate/intrinsic speciation rate; $\mu$ death rate/intrinsic extinction rate; $K$ - carrying capacity; $\lambda_1$ - speciation rate of good species; $\lambda_2$ - speciation-completion rate; $\lambda_3$ - speciation rate of incipient species; $\mu_1$ - extinction rate of good species; $\mu_2$ extinction rate of incipient species. T-TAS - GNN parameter estimation on full trees (with extinct lineages) in the in-sample data set; T-TES - GNN parameter estimation on extant trees (without extinct lineages) in the in-sample dataset; MLE-TES - MLE parameter estimation on extant trees in the complete dataset; V-TAS - GNN parameter estimation on full trees in the out-of-sample dataset; V-TES - GNN parameter estimation on extant trees in the out-of-sample dataset.}
     \label{fig::differences_box}
 \end{figure}
+
+\begin{table}[ht]
+    \caption{List of simulated tree datasets. The type column specifies which function is used to generate the trees. The age column specifies the crown age of the trees. The N column specifies the number of trees in the dataset. The rest of the columns specify the lower ($a$) and the upper ($b$) bounds of the initial parameters for the tree simulations, all the parameters are sampled from $U(a, b)$ except for $\lambda_1$ of the protracted birth-death scenario. $\lambda_1$ is computed as $\lambda_1 = 10^e$ where $e$ is sampled from $U(-3, 1)$. $U$ denotes uniform distribution. List A shows the parameter distributions of the birth-death trees and the diversity-dependent-diversification trees, $\lambda$: intrinsic speciation rate/birth rate; $\mu$: intrinsic extinction rate/death rate; $K$: carrying capacity. List B shows the parameter distributions of the protracted birth-death trees, $\lambda_1$: speciation-initiation rate of good species; $\lambda_2$: speciation-completion rate; $\lambda_3$: speciation-initiation rate of incipient species; $\mu_1$: extinction rate of good species; $\mu_2$: extinction rate of incipient species. $^*$In diversity-dependent-diversification simulations, the maximum extinction rate is capped at 1.5 if $0.9\lambda > 1.5$.}
+    \input{chapter2/simulation_in_out}
+    \label{table::simulated_trees_in_out_sample}
+\end{table}
+
+\begin{table}[ht]
+    \caption{Criteria for in-distribution (in-sample) and out-of-distribution (out-of-sample) dataset separation. Trees generated from each model are separated into left out-of-sample group, in-sample group and right out-of-sample group, based on the parameter ranges. The Model column shows the model of a parameter; the Parameter column shows the corresponding parameter; the Left Out column shows the criteria for the left out-of-sample group; the In Sample column shows the criteria for the in-sample group; the Right Out column shows the criteria of the right out-of-sample group. $\lambda$: intrinsic speciation rate/birth rate; $\mu$: intrinsic extinction rate/death rate; $K$: carrying capacity. List B shows the parameter distributions of the protracted birth-death trees, $\lambda_1$: speciation-initiation rate of good species; $\lambda_2$: speciation-completion rate; $\lambda_3$: speciation-initiation rate of incipient species; $\mu_1$: extinction rate of good species; $\mu_2$: extinction rate of incipient species.}
+    \input{chapter2/simulation_in_out_sample}
+    \label{table::simulation_in_out_sample}
+\end{table}
 
 \clearpage
 \subsection{Learning from Summary Statistics}
@@ -766,13 +774,7 @@ Despite these findings, DNNs have shown efficacy in enhancing the performance of
 \clearpage
 \subsection{List of Summary Statistics}
 \label{appendix::list_stats}
-\begin{table}[ht]
-    \adjustbox{max width=0.9\textwidth,margin=0pt,center=13.4cm} {
-        \input{chapter2/stats_list}
-    }
-    \caption{List of phylogenetic summary statistics used in neural network training}
-    \label{table::stats_list}
-\end{table}
+\input{chapter2/stats_list}
 
 \clearpage
 \subsection{Computational Costs}
