@@ -3,7 +3,7 @@ name: Build LaTeX document
 on:
   push:
     branches-ignore:
-      - compiled-pdf   # prevent CI loop when we push the PDF branch
+      - compiled-pdf
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
           latexmk_use_lualatex: true
           latexmk_shell_escape: true
           work_in_root_file_dir: true
-          extra_system_packages: "inkscape"
+          extra_system_packages: inkscape
           args: -pdf -jobname=Thesis -file-line-error -halt-on-error -interaction=nonstopmode
 
       - name: Verify output exists
@@ -38,7 +38,6 @@ jobs:
           test -f Thesis.pdf
           echo "Found Thesis.pdf"
 
-      # Publish the PDF to a separate branch
       - name: Publish PDF to compiled-pdf branch
         if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/compiled-pdf' }}
         run: |
@@ -47,23 +46,22 @@ jobs:
           BRANCH="compiled-pdf"
           SRC_SHA="${GITHUB_SHA}"
 
-          # Configure bot identity
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Create a fresh orphan branch in a temporary worktree
-          tmpdir="$(mktemp -d)"
-          git worktree add --detach "$tmpdir"
-          pushd "$tmpdir"
+          cp -f Thesis.pdf /tmp/Thesis.pdf
 
-          git switch --orphan "$BRANCH" || git checkout --orphan "$BRANCH"
-          # Remove all tracked/untracked files from the orphan branch worktree
-          rm -rf ./* .[^.]* || true
+          git fetch origin "${BRANCH}" || true
+          if git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}"; then
+            git switch "${BRANCH}"
+          else
+            git switch --orphan "${BRANCH}"
+          fi
 
-          # Copy the PDF from the main worktree (repo root)
-          cp -f "${GITHUB_WORKSPACE}/Thesis.pdf" ./Thesis.pdf
+          git rm -rf . >/dev/null 2>&1 || true
+          git clean -fdx
 
-          # README
+          cp -f /tmp/Thesis.pdf Thesis.pdf
           cat > README.md <<EOF
           This branch stores the latest compiled PDF.
           Source commit: ${SRC_SHA}
@@ -71,13 +69,8 @@ jobs:
           EOF
 
           git add Thesis.pdf README.md
-          git commit -m "Update Thesis.pdf from ${SRC_SHA}"
-
-          # Force push
-          git push -f origin "$BRANCH"
-
-          popd
-          git worktree remove "$tmpdir" --force
+          git commit -m "Update Thesis.pdf from ${SRC_SHA}" || true
+          git push -f origin "${BRANCH}"
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v5
