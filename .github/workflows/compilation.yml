@@ -11,6 +11,7 @@ jobs:
         with:
           root_file: dissertation.tex
           latexmk_use_lualatex: true
+          latexmk_shell_escape: true
       - name: Upload PDF file
         uses: actions/upload-artifact@v5
         with:
