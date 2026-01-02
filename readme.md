@@ -14,8 +14,6 @@
 
 This repository contains the complete LaTeX source, figures, and supporting files for my PhD thesis.
 
-> **Setup note:** This project is intended to be compiled on **Overleaf** (the source works as-is there).
-
 ---
 
 ## Download the compiled PDF
@@ -29,34 +27,6 @@ This repository contains the complete LaTeX source, figures, and supporting file
 Additional files that are too large or too numerous for the main thesis repository (e.g., supplementary figures, animations, and supporting materials) are maintained in the companion repository:
 
 - **EvoLandEco/Thesis-Appendix:** https://github.com/EvoLandEco/Thesis-Appendix/
-
----
-
-## Use on Overleaf
-
-### Option A: Upload a ZIP
-1. Click **Code → Download ZIP** on GitHub.
-2. In Overleaf, create a new project and **Upload Project** (ZIP).
-3. Set the **Main file** to `dissertation.tex`.
-
-### Option B: GitHub–Overleaf sync
-If you use Overleaf’s GitHub integration, link this repository to your Overleaf project and keep the repo as the single source of truth.
-
----
-
-## Repository structure
-
-- `dissertation.tex` — main entry file  
-- `acks/` — acknowledgements sources  
-- `conclusion/` — conclusion sources  
-- `summary/` — summary sources  
-- `title/` — title page sources (and cover preview image)  
-- `cv/` — CV sources  
-- `publications/` — publication sources  
-- `introduction/` — introduction sources  
-- `chapter*/` — chapter sources  
-- `dissertation.cls` — custom class/style  
-- `dissertation.bib` — references  
 
 ---
 
@@ -84,6 +54,33 @@ If you use Overleaf’s GitHub integration, link this repository to your Overlea
   year   = {2026},
 }
 ```
+
+---
+## Use on Overleaf
+> **Setup note:** This project is intended to be compiled on **Overleaf** (the source works as-is there).
+### Option A: Upload a ZIP
+1. Click **Code → Download ZIP** on GitHub.
+2. In Overleaf, create a new project and **Upload Project** (ZIP).
+3. Set the **Main file** to `dissertation.tex`.
+
+### Option B: GitHub–Overleaf sync
+If you use Overleaf’s GitHub integration, link this repository to your Overleaf project and keep the repo as the single source of truth.
+
+---
+
+## Repository structure
+
+- `dissertation.tex` — main entry file  
+- `acks/` — acknowledgements sources  
+- `conclusion/` — conclusion sources  
+- `summary/` — summary sources  
+- `title/` — title page sources (and cover preview image)  
+- `cv/` — CV sources  
+- `publications/` — publication sources  
+- `introduction/` — introduction sources  
+- `chapter*/` — chapter sources  
+- `dissertation.cls` — custom class/style  
+- `dissertation.bib` — references  
 
 ---
 
