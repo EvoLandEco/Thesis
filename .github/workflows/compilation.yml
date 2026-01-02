@@ -36,37 +36,39 @@ jobs:
         run: |
           ls -lah
           test -f Thesis.pdf
-          echo "Found Thesis.pdf"
 
       - name: Publish PDF to compiled-pdf branch
         if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/compiled-pdf' }}
+        env:
+          BRANCH: compiled-pdf
+          SRC_SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
-          BRANCH="compiled-pdf"
-          SRC_SHA="${GITHUB_SHA}"
+          REPO_URL="https://x-access-token:${TOKEN}@github.com/${REPO}.git"
+          DIR="$(mktemp -d)"
+
+          if git ls-remote --exit-code --heads "${REPO_URL}" "${BRANCH}" >/dev/null 2>&1; then
+            git clone --depth 1 --branch "${BRANCH}" "${REPO_URL}" "${DIR}"
+          else
+            git clone --depth 1 "${REPO_URL}" "${DIR}"
+            cd "${DIR}"
+            git checkout --orphan "${BRANCH}"
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          cd "${DIR}"
+
+          chmod -R u+w . || true
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+
+          cp -f "${GITHUB_WORKSPACE}/Thesis.pdf" Thesis.pdf
+          printf "This branch stores the latest compiled PDF.\nSource commit: %s\nUpdated by GitHub Actions.\n" "${SRC_SHA}" > README.md
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          cp -f Thesis.pdf /tmp/Thesis.pdf
-
-          git fetch origin "${BRANCH}" || true
-          if git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}"; then
-            git switch "${BRANCH}"
-          else
-            git switch --orphan "${BRANCH}"
-          fi
-
-          git rm -rf . >/dev/null 2>&1 || true
-          git clean -fdx
-
-          cp -f /tmp/Thesis.pdf Thesis.pdf
-          cat > README.md <<EOF
-          This branch stores the latest compiled PDF.
-          Source commit: ${SRC_SHA}
-          Updated by GitHub Actions.
-          EOF
 
           git add Thesis.pdf README.md
           git commit -m "Update Thesis.pdf from ${SRC_SHA}" || true
