@@ -18,7 +18,9 @@ This repository contains the complete LaTeX source, figures, and supporting file
 
 ## Download the compiled PDF
 
-- **Latest release page:** https://github.com/EvoLandEco/Thesis/releases/latest
+- **Direct download link:** [Click Here](https://github.com/EvoLandEco/Thesis/releases/download/v0.9.2/Thesis.pdf)
+
+- **Latest release page:** [Click Here](https://github.com/EvoLandEco/Thesis/releases/latest)
 
 ---
 
