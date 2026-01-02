@@ -51,10 +51,35 @@
 
 \RequirePackage{svg}
 
-% Chinese fonts (files too big, so I did not use local fonts. Inconsistency/error may occur across platforms)
-\setmainjfont[Path=fonts/noto-cjk/]{NotoSerifCJKsc-Regular.otf}
-\setsansjfont[Path=fonts/noto-cjk/]{NotoSansCJKsc-Regular.otf}
-\setmonojfont[Path=fonts/noto-cjk/]{NotoSansMonoCJKsc-Regular.otf}
+% Chinese fonts
+% CJK serif
+\setmainjfont[
+  Path = ./fonts/noto-cjk/,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont    = *-Bold
+]{NotoSerifCJKsc}
+
+% CJK sans
+\setsansjfont[
+  Path = ./fonts/noto-cjk/,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont    = *-Bold
+]{NotoSansCJKsc}
+
+% CJK mono
+\setmonojfont[
+  Path = ./fonts/noto-cjk/,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont    = *-Regular,
+  AutoFakeBold=2.0
+]{NotoSansMonoCJKsc}
+
+% \setmainjfont[Path=fonts/noto-cjk/]{NotoSerifCJKsc-Regular.otf}
+% \setsansjfont[Path=fonts/noto-cjk/]{NotoSansCJKsc-Regular.otf}
+% \setmonojfont[Path=fonts/noto-cjk/]{NotoSansMonoCJKsc-Regular.otf}
 % \setmainjfont{Noto Sans CJK SC}
 % \setsansjfont{Noto Sans CJK SC}
 % \setmonojfont{Noto Sans Mono CJK SC}
