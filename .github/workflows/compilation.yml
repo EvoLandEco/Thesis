@@ -12,6 +12,7 @@ jobs:
           root_file: dissertation.tex
           latexmk_use_lualatex: true
           latexmk_shell_escape: true
+          extra_system_packages: "inkscape"
       - name: Upload PDF file
         uses: actions/upload-artifact@v5
         with:
