@@ -128,7 +128,7 @@
 \RequirePackage{mdframed}
 \RequirePackage{titlesec}
 \RequirePackage{fontspec}
-\newfontfamily\tablefont{Arial}
+%\newfontfamily\tablefont{Arial} %
 
 \mdfsetup{skipbelow=3pt,skipabove=3pt,innerleftmargin=2.5pt,innerrightmargin=2.5pt,innertopmargin=2.5pt,innerbottommargin=2.5pt}
 \let\oldmdframed\mdframed
