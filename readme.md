@@ -112,3 +112,13 @@ If you use Overleaf’s GitHub integration, link this repository to your Overlea
 ## License
 
 - Code and build/config files: see [LICENSE](LICENSE)
+
+---
+
+## Acknowledgements
+
+This thesis repository started from the LaTeX template by **Moritz Beller**:
+https://github.com/Inventitech/phd-thesis-template
+
+I am grateful for this solid foundation. Since adopting it, I have modified and extended the codebase (structure, styling, build/CI workflow, and compatibility fixes). Any remaining issues are my own.
+
