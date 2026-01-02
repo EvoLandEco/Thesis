@@ -52,12 +52,12 @@
 \RequirePackage{svg}
 
 % Chinese fonts (files too big, so I did not use local fonts. Inconsistency/error may occur across platforms)
-% \setmainjfont[Path=fonts/noto-cjk/]{NotoSerifCJKsc-Regular.otf}
-% \setsansjfont[Path=fonts/noto-cjk/]{NotoSansCJKsc-Regular.otf}
-% \setmonojfont[Path=fonts/noto-cjk/]{NotoSansMonoCJKsc-Regular.otf}
-\setmainjfont{Noto Sans CJK SC}
-\setsansjfont{Noto Sans CJK SC}
-\setmonojfont{Noto Sans Mono CJK SC}
+\setmainjfont[Path=fonts/noto-cjk/]{NotoSerifCJKsc-Regular.otf}
+\setsansjfont[Path=fonts/noto-cjk/]{NotoSansCJKsc-Regular.otf}
+\setmonojfont[Path=fonts/noto-cjk/]{NotoSansMonoCJKsc-Regular.otf}
+% \setmainjfont{Noto Sans CJK SC}
+% \setsansjfont{Noto Sans CJK SC}
+% \setmonojfont{Noto Sans Mono CJK SC}
 
 % English fonts
 \setmainfont[Path = fonts/libertinus/, ItalicFont=libertinusserif-italic.otf, BoldFont=libertinusserif-bold.otf, BoldItalicFont=libertinusserif-bolditalic.otf]{libertinusserif-regular.otf}
