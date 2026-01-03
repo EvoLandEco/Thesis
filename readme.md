@@ -17,40 +17,22 @@ This repository contains the complete LaTeX source, figures, and supporting file
 ## Download the compiled PDF
 
 ### Online version
-<a href="https://github.com/EvoLandEco/Thesis/releases/latest"> 
-  <img alt="Latest release" src="https://img.shields.io/badge/PDF-latest%20release-brightgreen"> 
-</a> 
-
-<a href="https://github.com/EvoLandEco/Thesis/releases/latest"> 
-  <img alt="Release version" src="https://img.shields.io/github/v/release/EvoLandEco/Thesis?display_name=tag&sort=semver&label=version"> 
-</a>
+<a href="https://github.com/EvoLandEco/Thesis/releases/latest"><img alt="Latest release" src="https://img.shields.io/badge/PDF-latest%20release-brightgreen"></a> 
+<a href="https://github.com/EvoLandEco/Thesis/releases/latest"><img alt="Release version" src="https://img.shields.io/github/v/release/EvoLandEco/Thesis?display_name=tag&sort=semver&label=version"></a>
 
 - Latest release page: [Click Here](https://github.com/EvoLandEco/Thesis/releases/latest)
 
 ### Printed version
-<a href="https://github.com/EvoLandEco/Thesis/releases/latest">
-  <img alt="Printed version PDF" src="https://img.shields.io/badge/PDF-printed%20version-6f42c1">
-</a>
-
-<a href=#>
-  <img alt="Printed version status" src="https://img.shields.io/badge/version-not%20available-lightgrey">
-</a>
+<a href="https://github.com/EvoLandEco/Thesis/releases/latest"><img alt="Printed version PDF" src="https://img.shields.io/badge/PDF-printed%20version-6f42c1"></a>
+<a href=#><img alt="Printed version status" src="https://img.shields.io/badge/version-not%20available-lightgrey"></a>
 
 - PDF-for-print release: Not available yet
 
 ### Most recent build
 
-<a href="https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf">
-  <img alt="Auto-compiled PDF" src="https://img.shields.io/badge/PDF-auto--compiled-blue">
-</a>
-
-<a href="https://github.com/EvoLandEco/Thesis/actions/workflows/latex.yml">
-  <img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/EvoLandEco/Thesis/compilation.yml?branch=main&label=build">
-</a>
-
-<a href="https://github.com/EvoLandEco/Thesis/commits/compiled-pdf">
-  <img alt="Compiled PDF commit" src="https://img.shields.io/github/last-commit/EvoLandEco/Thesis/compiled-pdf?label=last%20commit">
-</a>
+<a href="https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf"><img alt="Auto-compiled PDF" src="https://img.shields.io/badge/PDF-auto--compiled-blue"></a>
+<a href="https://github.com/EvoLandEco/Thesis/actions/workflows/compilation.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/EvoLandEco/Thesis/compilation.yml?branch=main&label=build"></a>
+<a href="https://github.com/EvoLandEco/Thesis/commits/compiled-pdf"><img alt="Compiled PDF commit" src="https://img.shields.io/github/last-commit/EvoLandEco/Thesis/compiled-pdf?label=last%20commit"></a>
 
 - Direct download link: [Click Here](https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf)
 - Branch history: [Click Here](https://github.com/EvoLandEco/Thesis/commits/compiled-pdf)
