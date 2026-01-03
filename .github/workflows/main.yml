@@ -1,0 +1,119 @@
+name: Deploy thesis site
+
+on:
+  workflow_run:
+    workflows: ["Build LaTeX document"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source (README + assets)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Fetch latest compiled PDF from compiled-pdf branch
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          REPO_URL="https://x-access-token:${TOKEN}@github.com/${REPO}.git"
+          rm -rf _compiled_pdf
+          git clone --depth 1 --branch compiled-pdf "${REPO_URL}" _compiled_pdf
+          test -f _compiled_pdf/Thesis.pdf
+
+      - name: Build site
+        env:
+          SRC_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          rm -rf site
+          mkdir -p site/assets
+
+          cp -f _compiled_pdf/Thesis.pdf site/assets/Thesis.pdf
+
+          if [ -f cover.png ]; then
+            cp -f cover.png site/cover.png
+          fi
+
+          cat > site/style.css <<'EOF'
+          body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+          header{padding:20px 22px;border-bottom:1px solid #eee;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+          header .title{font-weight:700}
+          header .links{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+          a.btn{display:inline-block;padding:10px 14px;border:1px solid #ddd;border-radius:12px;text-decoration:none;color:inherit}
+          main{max-width:1100px;margin:0 auto;padding:22px}
+          .grid{display:grid;grid-template-columns:1fr;gap:14px}
+          .card{border:1px solid #eee;border-radius:14px;overflow:hidden}
+          .card .bar{padding:12px 14px;border-bottom:1px solid #eee;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+          iframe.pdf{width:100%;height:84vh;border:0;display:block}
+          small{color:#666}
+          EOF
+
+          cat > site/index.html <<EOF
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>PhD Thesis</title>
+            <link rel="stylesheet" href="./style.css" />
+          </head>
+          <body>
+            <header>
+              <div class="title">Diversification Models and Neural Inference</div>
+              <div class="links">
+                <a class="btn" href="./assets/Thesis.pdf">Download PDF</a>
+                <a class="btn" href="./readme.html">Project README</a>
+                <a class="btn" href="https://github.com/${REPO}">GitHub</a>
+                <a class="btn" href="https://github.com/${REPO}/releases/latest">Releases</a>
+              </div>
+            </header>
+
+            <main>
+              <div class="grid">
+                <div class="card">
+                  <div class="bar">
+                    <strong>Embedded PDF</strong>
+                    <small>Source commit: ${SRC_SHA}</small>
+                  </div>
+                  <iframe class="pdf" src="./assets/Thesis.pdf"></iframe>
+                </div>
+              </div>
+            </main>
+          </body>
+          </html>
+          EOF
+
+          docker run --rm -v "$PWD:/data" pandoc/core:latest \
+            /data/README.md \
+            --from=gfm --to=html5 --standalone \
+            --css=style.css \
+            --metadata title="Project README" \
+            -o /data/site/readme.html
+
+          touch site/.nojekyll
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: gh-pages
+          publish_dir: ./site
+          force_orphan: true
