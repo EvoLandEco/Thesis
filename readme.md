@@ -51,7 +51,8 @@ This repository contains the complete LaTeX source, figures, and supporting file
 
 *This version is compiled automatically from the latest commit. The GHA workfow is built on top of [latex-action](https://github.com/xu-cheng/latex-action/).*
 
-- Direct download link: [Click Here](https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf)
+- Read online: [Click Here](https://qtj.me/Thesis/)
+- Direct download: [Click Here](https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf)
 - Branch history: [Click Here](https://github.com/EvoLandEco/Thesis/commits/compiled-pdf)
 - Build workflow: [Click Here](https://github.com/EvoLandEco/Thesis/actions/workflows/compilation.yml)
 
