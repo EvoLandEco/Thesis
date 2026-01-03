@@ -43,11 +43,13 @@ This repository contains the complete LaTeX source, figures, and supporting file
 <a href="https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf">
   <img alt="Auto-compiled PDF" src="https://img.shields.io/badge/PDF-auto--compiled-blue">
 </a>
-<a href="https://github.com/EvoLandEco/Thesis/commits/compiled-pdf">
-  <img alt="Compiled PDF commit" src="https://img.shields.io/github/last-commit/EvoLandEco/Thesis/compiled-pdf?label=branch%20commit">
-</a>
+
 <a href="https://github.com/EvoLandEco/Thesis/actions/workflows/latex.yml">
-  <img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/EvoLandEco/Thesis/latex.yml?branch=main&label=build">
+  <img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/EvoLandEco/Thesis/compilation.yml?branch=main&label=build">
+</a>
+
+<a href="https://github.com/EvoLandEco/Thesis/commits/compiled-pdf">
+  <img alt="Compiled PDF commit" src="https://img.shields.io/github/last-commit/EvoLandEco/Thesis/compiled-pdf?label=last%20commit">
 </a>
 
 - Direct download link: [Click Here](https://raw.githubusercontent.com/EvoLandEco/Thesis/compiled-pdf/Thesis.pdf)
