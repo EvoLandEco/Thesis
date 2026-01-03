@@ -101,12 +101,24 @@ jobs:
           </html>
           EOF
 
-          docker run --rm -v "$PWD:/data" pandoc/core:latest \
-            /data/README.md \
-            --from=gfm --to=html5 --standalone \
-            --css=style.css \
-            --metadata title="Project README" \
-            -o /data/site/readme.html
+          README_SRC=""
+          for f in README.md readme.md Readme.md; do
+            if [ -f "$f" ]; then
+              README_SRC="$f"
+              break
+            fi
+          done
+
+          if [ -n "$README_SRC" ]; then
+            docker run --rm -v "${GITHUB_WORKSPACE}:/data" pandoc/core:latest \
+              "/data/${README_SRC}" \
+              --from=gfm --to=html5 --standalone \
+              --css=style.css \
+              --metadata title="Project README" \
+              -o /data/site/readme.html
+          else
+            printf "<!doctype html><meta charset='utf-8'><title>Project README</title><p>No README found.</p>" > site/readme.html
+          fi
 
           touch site/.nojekyll
 
