@@ -222,9 +222,6 @@
 
 \RequirePackage[nomain,acronym,nonumberlist,style=list]{glossaries} % nomain, if you define glossaries in a file, and you use \include{INP-00-glossary}
 
-%% Stop importing packages
-
-
 % Advanced Hyphenation
 \clubpenalty=1000
 \widowpenalty=1000
