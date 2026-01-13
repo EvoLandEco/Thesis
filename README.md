@@ -1,3 +1,3 @@
 This branch stores the latest compiled PDF.
-Source commit: 505fe6260ea4a707204ed408383fa3538c2ee744
+Source commit: 1ab58c8a31637ad99e0f2fadd4d88baadef1b83a
 Updated by GitHub Actions.
