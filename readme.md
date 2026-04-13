@@ -69,11 +69,11 @@ This repository contains the complete LaTeX source, figures, and supporting file
 
 ### Printed version
 <a href="https://github.com/EvoLandEco/Thesis/releases/latest"><img alt="Printed version PDF" src="https://img.shields.io/badge/PDF-printed%20version-6f42c1"></a>
-<a href=#><img alt="Printed version status" src="https://img.shields.io/badge/version-not%20available-lightgrey"></a>
+<a href=#><img alt="Printed version status" src="https://img.shields.io/badge/version-v1.1.0-lightgrey"></a>
 
 *This version is consistent with the final printed PDF.*
 
-- PDF-for-print release: Not available yet
+- PDF-for-print release: [Click Here](https://github.com/EvoLandEco/Thesis/releases/tag/v1.1.0)
 
 ---
 
